@@ -2,6 +2,7 @@ import { Geist, Geist_Mono, Noto_Sans } from "next/font/google"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils";
 
 const notoSans = Noto_Sans({variable:'--font-sans'})
@@ -18,12 +19,13 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="tr"
       suppressHydrationWarning
       className={cn("antialiased", fontMono.variable, "font-sans", notoSans.variable)}
     >
       <body>
         <ThemeProvider>{children}</ThemeProvider>
+        <Toaster position="bottom-center" />
       </body>
     </html>
   )
