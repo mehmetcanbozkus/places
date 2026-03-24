@@ -63,9 +63,7 @@ export function RatingBreakdown({
           return (
             <button
               key={star}
-              onClick={() =>
-                onStarClick?.(activeFilter === star ? null : star)
-              }
+              onClick={() => onStarClick?.(activeFilter === star ? null : star)}
               className={`flex items-center gap-2 rounded px-1 py-0.5 text-xs transition-colors ${
                 onStarClick ? "cursor-pointer hover:bg-muted/50" : ""
               } ${isActive ? "bg-muted" : ""}`}

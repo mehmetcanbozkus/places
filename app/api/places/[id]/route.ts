@@ -62,8 +62,7 @@ export async function GET(
   }
 
   const { id } = await params
-  const languageCode =
-    request.nextUrl.searchParams.get("languageCode") || "tr"
+  const languageCode = request.nextUrl.searchParams.get("languageCode") || "tr"
 
   const response = await fetch(
     `https://places.googleapis.com/v1/places/${id}?languageCode=${languageCode}&regionCode=TR`,

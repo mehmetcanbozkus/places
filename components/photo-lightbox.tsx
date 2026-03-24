@@ -148,7 +148,11 @@ export function PhotoLightbox({
 
           {/* Photo */}
           <div className="relative flex h-full w-full items-center justify-center px-4 pt-16 pb-20">
-            <AnimatePresence initial={false} custom={direction} mode="popLayout">
+            <AnimatePresence
+              initial={false}
+              custom={direction}
+              mode="popLayout"
+            >
               <motion.div
                 key={currentIndex}
                 custom={direction}
@@ -170,7 +174,7 @@ export function PhotoLightbox({
                 <img
                   src={getPhotoUrl(photos[currentIndex].name, 1200)}
                   alt={`Fotoğraf ${currentIndex + 1}`}
-                  className={`max-h-full max-w-full select-none object-contain transition-transform duration-300 ${
+                  className={`max-h-full max-w-full object-contain transition-transform duration-300 select-none ${
                     isZoomed ? "scale-150 cursor-zoom-out" : "cursor-zoom-in"
                   }`}
                   draggable={false}
@@ -199,7 +203,7 @@ export function PhotoLightbox({
 
           {/* Thumbnail strip */}
           {photos.length > 1 && (
-            <div className="absolute bottom-0 right-0 left-0 z-10 p-4">
+            <div className="absolute right-0 bottom-0 left-0 z-10 p-4">
               <div className="mx-auto flex max-w-lg justify-center gap-1.5 overflow-x-auto">
                 {photos.map((photo, i) => (
                   <button

@@ -1,6 +1,13 @@
 "use client"
 
-import { useState, useEffect, useCallback, useMemo, useRef, Suspense } from "react"
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+  Suspense,
+} from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "motion/react"
 import { PlaceCard } from "./place-card"
@@ -84,8 +91,12 @@ function PlacesExplorerInner() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>("grid")
 
-  const { searches: recentSearches, addSearch, removeSearch, clearAll: clearRecentSearches } =
-    useRecentSearches()
+  const {
+    searches: recentSearches,
+    addSearch,
+    removeSearch,
+    clearAll: clearRecentSearches,
+  } = useRecentSearches()
 
   // URL state sync (debounced)
   const syncTimer = useRef<ReturnType<typeof setTimeout>>(null)
@@ -339,8 +350,8 @@ function PlacesExplorerInner() {
           </motion.div>
           <h2 className="text-xl font-semibold">Konumunuz Alınıyor</h2>
           <p className="text-sm text-muted-foreground">
-            Yakınızaktaki en iyi restoranları bulmak için konum iznine
-            ihtiyacımız var.
+            Yakınızdaki en iyi mekanları bulmak için konum iznine ihtiyacımız
+            var.
           </p>
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
           <div className="w-full pt-2">
@@ -370,8 +381,8 @@ function PlacesExplorerInner() {
           <h2 className="text-xl font-semibold">Konum Bulunamadı</h2>
           <p className="text-sm text-muted-foreground">
             {locationStatus === "denied"
-              ? "Konum izni reddedildi. Aşağıya bir adres girerek restoranları arayabilirsiniz."
-              : "Konum alınamadı. Aşağıya bir adres girerek restoranları arayabilirsiniz."}
+              ? "Konum izni reddedildi. Aşağıya bir adres girerek mekanları arayabilirsiniz."
+              : "Konum alınamadı. Aşağıya bir adres girerek mekanları arayabilirsiniz."}
           </p>
           <div className="w-full">{searchComponent}</div>
         </motion.div>
@@ -396,9 +407,7 @@ function PlacesExplorerInner() {
             >
               <RefreshCw
                 className={`h-5 w-5 text-muted-foreground ${
-                  isRefreshing || pullDistance > 80
-                    ? "animate-spin"
-                    : ""
+                  isRefreshing || pullDistance > 80 ? "animate-spin" : ""
                 }`}
                 style={{
                   transform: isRefreshing
@@ -408,9 +417,7 @@ function PlacesExplorerInner() {
               />
               {!isRefreshing && pullDistance > 10 && (
                 <span className="ml-2 text-xs text-muted-foreground">
-                  {pullDistance > 80
-                    ? "Bırakın..."
-                    : "Yenilemek için çekin"}
+                  {pullDistance > 80 ? "Bırakın..." : "Yenilemek için çekin"}
                 </span>
               )}
             </motion.div>
@@ -488,7 +495,7 @@ function PlacesExplorerInner() {
                     className="relative lg:hidden"
                   >
                     <SlidersHorizontal className="mr-1.5 h-4 w-4" />
-                    <span className="hidden xs:inline">Filtre</span>
+                    <span className="xs:inline hidden">Filtre</span>
                     {activeFilterCount > 0 && (
                       <Badge className="ml-1.5 h-5 min-w-5 justify-center rounded-full px-1 text-[10px]">
                         {activeFilterCount}
@@ -537,7 +544,7 @@ function PlacesExplorerInner() {
           {/* Desktop sidebar */}
           <aside className="hidden w-72 shrink-0 border-r lg:block">
             <div className="sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto p-4">
-              <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              <h2 className="mb-4 text-sm font-semibold tracking-wider text-muted-foreground uppercase">
                 Filtreler
               </h2>
               <FiltersPanel
@@ -558,10 +565,7 @@ function PlacesExplorerInner() {
             {/* Quick filters */}
             {!loading && places.length > 0 && (
               <div className="mb-4">
-                <QuickFilters
-                  filters={filters}
-                  onFiltersChange={setFilters}
-                />
+                <QuickFilters filters={filters} onFiltersChange={setFilters} />
               </div>
             )}
 
@@ -604,15 +608,11 @@ function PlacesExplorerInner() {
                   </h3>
                   <p className="mt-1 max-w-sm text-sm text-muted-foreground">
                     {places.length === 0
-                      ? "Bu alanda restoran bulunamadı. Arama yarıçapını artırmayı deneyin."
-                      : "Aktif filtrelere uygun restoran bulunamadı. Filtreleri genişletmeyi deneyin."}
+                      ? "Bu alanda mekan bulunamadı. Arama yarıçapını artırmayı deneyin."
+                      : "Aktif filtrelere uygun mekan bulunamadı. Filtreleri genişletmeyi deneyin."}
                   </p>
                   {places.length === 0 ? (
-                    <Button
-                      onClick={fetchPlaces}
-                      className="mt-4"
-                      size="sm"
-                    >
+                    <Button onClick={fetchPlaces} className="mt-4" size="sm">
                       <RefreshCw className="mr-2 h-4 w-4" />
                       Tekrar Ara
                     </Button>

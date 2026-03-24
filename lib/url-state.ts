@@ -29,7 +29,7 @@ export function parseUrlState(searchParams: URLSearchParams) {
     lat && lng ? { lat: parseFloat(lat), lng: parseFloat(lng) } : null
   const locationLabel = searchParams.get("q") || ""
   const sort = (searchParams.get("s") as SortOption) || "rating"
-  const radius = parseInt(searchParams.get("r") || "1500", 10)
+  const radius = parseInt(searchParams.get("r") || "3000", 10)
 
   const filters: FilterState = { ...DEFAULT_FILTERS }
 
@@ -44,7 +44,8 @@ export function parseUrlState(searchParams: URLSearchParams) {
     } else if (filterKey === "priceLevels") {
       filters.priceLevels = value.split(",") as PriceLevel[]
     } else {
-      ;(filters as unknown as Record<string, boolean>)[filterKey] = value === "1"
+      ;(filters as unknown as Record<string, boolean>)[filterKey] =
+        value === "1"
     }
   }
 
@@ -68,7 +69,7 @@ export function buildUrlParams(state: {
   }
 
   if (state.sort !== "rating") params.set("s", state.sort)
-  if (state.radius !== 1500) params.set("r", state.radius.toString())
+  if (state.radius !== 3000) params.set("r", state.radius.toString())
 
   const f = state.filters
   if (f.minRating > 0) params.set("mr", f.minRating.toString())

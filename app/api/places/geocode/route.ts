@@ -12,10 +12,7 @@ export async function GET(request: NextRequest) {
 
   const address = request.nextUrl.searchParams.get("address")
   if (!address) {
-    return NextResponse.json(
-      { error: "Address is required" },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: "Address is required" }, { status: 400 })
   }
 
   // Use Places API Text Search to find the location
@@ -26,7 +23,8 @@ export async function GET(request: NextRequest) {
       headers: {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": GOOGLE_API_KEY,
-        "X-Goog-FieldMask": "places.location,places.formattedAddress,places.displayName",
+        "X-Goog-FieldMask":
+          "places.location,places.formattedAddress,places.displayName",
       },
       body: JSON.stringify({
         textQuery: address,
@@ -48,10 +46,7 @@ export async function GET(request: NextRequest) {
   const data = await response.json()
 
   if (!data.places?.length) {
-    return NextResponse.json(
-      { error: "Address not found" },
-      { status: 404 }
-    )
+    return NextResponse.json({ error: "Address not found" }, { status: 404 })
   }
 
   const place = data.places[0]

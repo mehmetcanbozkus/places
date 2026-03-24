@@ -123,7 +123,7 @@ export function PlaceCard({ place, userLocation, onClick }: PlaceCardProps) {
           )}
           <button
             onClick={handleShare}
-            className="rounded-full bg-black/50 p-1.5 text-white opacity-0 backdrop-blur-sm transition-all hover:bg-black/70 group-hover:opacity-100"
+            className="rounded-full bg-black/50 p-1.5 text-white opacity-0 backdrop-blur-sm transition-all group-hover:opacity-100 hover:bg-black/70"
             title="Paylaş"
           >
             <Share2 className="h-3.5 w-3.5" />
@@ -134,7 +134,7 @@ export function PlaceCard({ place, userLocation, onClick }: PlaceCardProps) {
       {/* Content */}
       <div className="p-4">
         {/* Name and type */}
-        <h3 className="truncate text-base font-semibold leading-tight">
+        <h3 className="truncate text-base leading-tight font-semibold">
           {place.displayName.text}
         </h3>
         {place.primaryTypeDisplayName && (
@@ -147,7 +147,9 @@ export function PlaceCard({ place, userLocation, onClick }: PlaceCardProps) {
         <div className="mt-2.5 flex items-center gap-3 text-sm">
           {place.rating !== undefined && ratingColor && (
             <div className="flex items-center gap-1">
-              <Star className={`h-4 w-4 ${ratingColor.fill} ${ratingColor.text}`} />
+              <Star
+                className={`h-4 w-4 ${ratingColor.fill} ${ratingColor.text}`}
+              />
               <span className={`font-semibold ${ratingColor.text}`}>
                 {place.rating.toFixed(1)}
               </span>

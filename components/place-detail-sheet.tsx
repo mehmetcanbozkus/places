@@ -82,7 +82,7 @@ function PhotoGallery({
     <div className="relative">
       <div
         ref={scrollRef}
-        className="flex snap-x snap-mandatory gap-2 overflow-x-auto scrollbar-hide"
+        className="scrollbar-hide flex snap-x snap-mandatory gap-2 overflow-x-auto"
         style={{ scrollbarWidth: "none" }}
       >
         {photos.map((photo, i) => (
@@ -315,23 +315,25 @@ export function PlaceDetailSheet({
                       </div>
 
                       <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
-                        {place.rating !== undefined && (() => {
-                          const rc = getRatingColor(place.rating!)
-                          return (
-                            <div className="flex items-center gap-1">
-                              <Star className={`h-4 w-4 ${rc.fill} ${rc.text}`} />
-                              <span className={`font-semibold ${rc.text}`}>
-                                {place.rating!.toFixed(1)}
-                              </span>
-                            </div>
-                          )
-                        })()}
+                        {place.rating !== undefined &&
+                          (() => {
+                            const rc = getRatingColor(place.rating!)
+                            return (
+                              <div className="flex items-center gap-1">
+                                <Star
+                                  className={`h-4 w-4 ${rc.fill} ${rc.text}`}
+                                />
+                                <span className={`font-semibold ${rc.text}`}>
+                                  {place.rating!.toFixed(1)}
+                                </span>
+                              </div>
+                            )
+                          })()}
                         {place.userRatingCount !== undefined && (
                           <div className="flex items-center gap-1 text-muted-foreground">
                             <MessageSquare className="h-3.5 w-3.5" />
                             <span>
-                              {formatReviewCount(place.userRatingCount)}{" "}
-                              yorum
+                              {formatReviewCount(place.userRatingCount)} yorum
                             </span>
                           </div>
                         )}
@@ -363,7 +365,7 @@ export function PlaceDetailSheet({
 
                     {/* Editorial summary */}
                     {place.editorialSummary?.text && (
-                      <p className="text-sm italic leading-relaxed text-muted-foreground">
+                      <p className="text-sm leading-relaxed text-muted-foreground italic">
                         {place.editorialSummary.text}
                       </p>
                     )}
@@ -442,9 +444,7 @@ export function PlaceDetailSheet({
 
                     {/* Features */}
                     <div>
-                      <h3 className="mb-3 text-sm font-semibold">
-                        Özellikler
-                      </h3>
+                      <h3 className="mb-3 text-sm font-semibold">Özellikler</h3>
                       <div className="flex flex-wrap gap-1.5">
                         <FeatureBadge
                           icon={Truck}
@@ -526,10 +526,8 @@ export function PlaceDetailSheet({
                           </h3>
                           <div className="space-y-1">
                             {(
-                              place.regularOpeningHours
-                                ?.weekdayDescriptions ||
-                              place.currentOpeningHours
-                                ?.weekdayDescriptions ||
+                              place.regularOpeningHours?.weekdayDescriptions ||
+                              place.currentOpeningHours?.weekdayDescriptions ||
                               []
                             ).map((desc, i) => (
                               <p
@@ -583,10 +581,8 @@ export function PlaceDetailSheet({
                                   className="cursor-pointer text-xs"
                                   onClick={() => setReviewFilter(star)}
                                 >
-                                  {star === null
-                                    ? "Hepsi"
-                                    : `${star} ★`}{" "}
-                                  ({count})
+                                  {star === null ? "Hepsi" : `${star} ★`} (
+                                  {count})
                                 </Badge>
                               )
                             })}

@@ -113,7 +113,7 @@ const CHIPS: {
 export function QuickFilters({ filters, onFiltersChange }: QuickFiltersProps) {
   return (
     <div
-      className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide"
+      className="scrollbar-hide flex gap-2 overflow-x-auto pb-1"
       style={{ scrollbarWidth: "none" }}
     >
       {CHIPS.map((chip) => {

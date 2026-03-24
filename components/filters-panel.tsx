@@ -144,7 +144,10 @@ export function FiltersPanel({
       {/* Sort */}
       <div>
         <label className="mb-2 block text-sm font-medium">Sıralama</label>
-        <Select value={sort} onValueChange={(v) => onSortChange(v as SortOption)}>
+        <Select
+          value={sort}
+          onValueChange={(v) => onSortChange(v as SortOption)}
+        >
           <SelectTrigger className="w-full">
             <SelectValue />
           </SelectTrigger>
@@ -235,7 +238,7 @@ export function FiltersPanel({
 
       {/* Service Type */}
       <div>
-        <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        <label className="mb-1 block text-xs font-medium tracking-wider text-muted-foreground uppercase">
           Servis Tipi
         </label>
         <FeatureSwitch
@@ -266,7 +269,7 @@ export function FiltersPanel({
 
       {/* Meals */}
       <div>
-        <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        <label className="mb-1 block text-xs font-medium tracking-wider text-muted-foreground uppercase">
           Öğünler
         </label>
         <FeatureSwitch
@@ -297,7 +300,7 @@ export function FiltersPanel({
 
       {/* Features */}
       <div>
-        <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        <label className="mb-1 block text-xs font-medium tracking-wider text-muted-foreground uppercase">
           Özellikler
         </label>
         <FeatureSwitch

@@ -194,8 +194,7 @@ export function getRatingColor(rating: number): {
 } {
   if (rating >= 4.5)
     return { text: "text-emerald-500", fill: "fill-emerald-500" }
-  if (rating >= 3.5)
-    return { text: "text-amber-400", fill: "fill-amber-400" }
+  if (rating >= 3.5) return { text: "text-amber-400", fill: "fill-amber-400" }
   return { text: "text-red-500", fill: "fill-red-500" }
 }
 
@@ -232,12 +231,16 @@ export function formatReviewCount(count: number): string {
   return count.toString()
 }
 
-export async function sharePlace(place: Place): Promise<"shared" | "copied" | "failed"> {
+export async function sharePlace(
+  place: Place
+): Promise<"shared" | "copied" | "failed"> {
   const rating = place.rating ? `${place.rating.toFixed(1)}` : ""
   const reviews = place.userRatingCount
     ? `(${formatReviewCount(place.userRatingCount)} yorum)`
     : ""
-  const price = place.priceLevel ? ` · ${PRICE_LEVEL_MAP[place.priceLevel]}` : ""
+  const price = place.priceLevel
+    ? ` · ${PRICE_LEVEL_MAP[place.priceLevel]}`
+    : ""
   const address = place.shortFormattedAddress || place.formattedAddress || ""
 
   const lines = [

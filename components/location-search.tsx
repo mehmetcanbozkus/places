@@ -42,18 +42,18 @@ function getPlaceIcon(types?: string[]) {
   if (!types) return MapPin
   if (
     types.some((t) =>
-      ["locality", "administrative_area_level_1", "country", "neighborhood"].includes(t)
+      [
+        "locality",
+        "administrative_area_level_1",
+        "country",
+        "neighborhood",
+      ].includes(t)
     )
   )
     return Map
   if (
     types.some((t) =>
-      [
-        "restaurant",
-        "store",
-        "establishment",
-        "point_of_interest",
-      ].includes(t)
+      ["restaurant", "store", "establishment", "point_of_interest"].includes(t)
     )
   )
     return Building2
@@ -131,10 +131,8 @@ export function LocationSearch({
               const p = s.placePrediction
               return {
                 placeId: p.placeId,
-                mainText:
-                  p.structuredFormat?.mainText?.text || p.text.text,
-                secondaryText:
-                  p.structuredFormat?.secondaryText?.text || "",
+                mainText: p.structuredFormat?.mainText?.text || p.text.text,
+                secondaryText: p.structuredFormat?.secondaryText?.text || "",
                 distanceMeters: p.distanceMeters,
                 fullText: p.text.text,
                 types: p.types,
@@ -226,8 +224,7 @@ export function LocationSearch({
     }
   }
 
-  const showRecents =
-    query.trim().length < 2 && recentSearches.length > 0
+  const showRecents = query.trim().length < 2 && recentSearches.length > 0
   const showDropdown =
     open &&
     (suggestions.length > 0 ||
@@ -257,7 +254,7 @@ export function LocationSearch({
           }}
           onKeyDown={handleKeyDown}
           placeholder="Konum veya adres ara..."
-          className="pl-9 pr-9"
+          className="pr-9 pl-9"
         />
         {loading && (
           <Loader2 className="absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
@@ -336,9 +333,7 @@ export function LocationSearch({
                   <button
                     key={suggestion.placeId}
                     className={`flex w-full items-start gap-3 px-3 py-2.5 text-left transition-colors ${
-                      isActive
-                        ? "bg-accent"
-                        : "hover:bg-accent/50"
+                      isActive ? "bg-accent" : "hover:bg-accent/50"
                     }`}
                     onClick={() => selectSuggestion(suggestion)}
                     onMouseEnter={() => setSelectedIndex(i)}
@@ -366,9 +361,7 @@ export function LocationSearch({
               {/* Use my location option */}
               {hasGpsLocation && isSearchLocation && (
                 <>
-                  {suggestions.length > 0 && (
-                    <div className="mx-3 border-t" />
-                  )}
+                  {suggestions.length > 0 && <div className="mx-3 border-t" />}
                   <button
                     className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors ${
                       selectedIndex === suggestions.length
@@ -380,9 +373,7 @@ export function LocationSearch({
                       setQuery("")
                       setOpen(false)
                     }}
-                    onMouseEnter={() =>
-                      setSelectedIndex(suggestions.length)
-                    }
+                    onMouseEnter={() => setSelectedIndex(suggestions.length)}
                   >
                     <Navigation className="h-4 w-4 shrink-0 text-primary" />
                     <span className="text-sm font-medium text-primary">
