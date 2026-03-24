@@ -43,6 +43,7 @@ import {
   LocateFixed,
   LayoutGrid,
   List,
+  Heart,
 } from "lucide-react"
 import type { Place, FilterState, SortOption } from "@/lib/types"
 import {
@@ -53,6 +54,7 @@ import {
 import { parseUrlState, buildUrlParams } from "@/lib/url-state"
 import { useRecentSearches } from "@/hooks/use-recent-searches"
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh"
+import { useFavorites } from "@/hooks/use-favorites"
 
 type LocationSource = "gps" | "search"
 type ViewMode = "grid" | "list"
@@ -97,6 +99,9 @@ function PlacesExplorerInner() {
     removeSearch,
     clearAll: clearRecentSearches,
   } = useRecentSearches()
+
+  const { favorites, toggle: toggleFavorite, isFavorite, count: favoritesCount } = useFavorites()
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
 
   // URL state sync (debounced)
   const syncTimer = useRef<ReturnType<typeof setTimeout>>(null)
@@ -252,6 +257,7 @@ function PlacesExplorerInner() {
   // Filter and sort
   const filteredPlaces = useMemo(() => {
     const result = places.filter((place) => {
+      if (showFavoritesOnly && !favorites.includes(place.id)) return false
       if (filters.minRating > 0 && (place.rating || 0) < filters.minRating)
         return false
       if (
@@ -313,7 +319,7 @@ function PlacesExplorerInner() {
     })
 
     return result
-  }, [places, filters, sort, location])
+  }, [places, filters, sort, location, showFavoritesOnly, favorites])
 
   const activeFilterCount = countActiveFilters(filters)
 
@@ -425,7 +431,7 @@ function PlacesExplorerInner() {
         </AnimatePresence>
 
         {/* Header */}
-        <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-xl">
+        <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl" style={{ borderBottom: "1px solid transparent", borderImage: "linear-gradient(to right, var(--primary), var(--secondary)) 1" }}>
           <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4">
             <div className="flex shrink-0 items-center gap-2">
               <UtensilsCrossed className="h-5 w-5 text-primary" />
@@ -482,6 +488,33 @@ function PlacesExplorerInner() {
                   className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
                 />
               </Button>
+
+              {/* Favorites counter */}
+              {favoritesCount > 0 && (
+                <motion.button
+                  onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                  whileTap={{ scale: 0.9 }}
+                  className={`relative flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
+                    showFavoritesOnly
+                      ? "bg-[var(--neon-favorite)] text-white"
+                      : "hover:bg-muted"
+                  }`}
+                  title="Favoriler"
+                >
+                  <Heart
+                    className="h-4 w-4"
+                    fill={showFavoritesOnly ? "currentColor" : "none"}
+                  />
+                  <motion.span
+                    key={favoritesCount}
+                    initial={{ scale: 1.5 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-pink-500 px-1 text-[10px] font-bold text-white"
+                  >
+                    {favoritesCount}
+                  </motion.span>
+                </motion.button>
+              )}
 
               {/* Mobile filter toggle */}
               <Sheet
@@ -565,7 +598,13 @@ function PlacesExplorerInner() {
             {/* Quick filters */}
             {!loading && places.length > 0 && (
               <div className="mb-4">
-                <QuickFilters filters={filters} onFiltersChange={setFilters} />
+                <QuickFilters
+                  filters={filters}
+                  onFiltersChange={setFilters}
+                  showFavoritesOnly={showFavoritesOnly}
+                  onToggleFavorites={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                  favoritesCount={favoritesCount}
+                />
               </div>
             )}
 
@@ -576,21 +615,33 @@ function PlacesExplorerInner() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+                  className={
+                    viewMode === "grid"
+                      ? "grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+                      : "flex flex-col gap-2"
+                  }
                 >
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="overflow-hidden rounded-xl border bg-card"
-                    >
-                      <Skeleton className="aspect-[16/10] w-full" />
-                      <div className="space-y-2 p-4">
-                        <Skeleton className="h-5 w-3/4" />
-                        <Skeleton className="h-4 w-1/2" />
-                        <Skeleton className="h-4 w-2/3" />
+                  {Array.from({ length: 6 }).map((_, i) =>
+                    viewMode === "grid" ? (
+                      <div key={i} className="overflow-hidden rounded-xl border bg-card">
+                        <Skeleton className="aspect-[16/10] w-full" />
+                        <div className="space-y-2 p-4">
+                          <Skeleton className="h-5 w-3/4" />
+                          <Skeleton className="h-4 w-1/2" />
+                          <Skeleton className="h-4 w-2/3" />
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ) : (
+                      <div key={i} className="flex gap-3 rounded-xl border bg-card p-3">
+                        <Skeleton className="h-20 w-24 shrink-0 rounded-lg" />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-4 w-3/4" />
+                          <Skeleton className="h-3 w-1/2" />
+                          <Skeleton className="h-3 w-2/3" />
+                        </div>
+                      </div>
+                    )
+                  )}
                 </motion.div>
               ) : filteredPlaces.length === 0 ? (
                 <motion.div
@@ -600,31 +651,63 @@ function PlacesExplorerInner() {
                   exit={{ opacity: 0 }}
                   className="flex flex-col items-center justify-center py-20 text-center"
                 >
-                  <SearchX className="h-16 w-16 text-muted-foreground/30" />
-                  <h3 className="mt-4 text-lg font-semibold">
-                    {places.length === 0
-                      ? "Sonuç Bulunamadı"
-                      : "Filtrelere Uygun Sonuç Yok"}
-                  </h3>
-                  <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-                    {places.length === 0
-                      ? "Bu alanda mekan bulunamadı. Arama yarıçapını artırmayı deneyin."
-                      : "Aktif filtrelere uygun mekan bulunamadı. Filtreleri genişletmeyi deneyin."}
-                  </p>
-                  {places.length === 0 ? (
-                    <Button onClick={fetchPlaces} className="mt-4" size="sm">
-                      <RefreshCw className="mr-2 h-4 w-4" />
-                      Tekrar Ara
-                    </Button>
+                  {showFavoritesOnly ? (
+                    <>
+                      <motion.div
+                        animate={{ scale: [1, 1.1, 1] }}
+                        transition={{ repeat: Infinity, duration: 1.5 }}
+                      >
+                        <Heart className="h-16 w-16 text-pink-300" />
+                      </motion.div>
+                      <h3 className="mt-4 text-lg font-semibold">
+                        Henüz Favori Mekanınız Yok
+                      </h3>
+                      <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+                        Beğendiğiniz mekanlardaki kalp ikonuna tıklayarak favorilerinize ekleyin.
+                      </p>
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowFavoritesOnly(false)}
+                        className="mt-4"
+                        size="sm"
+                      >
+                        Keşfetmeye Başla
+                      </Button>
+                    </>
                   ) : (
-                    <Button
-                      variant="outline"
-                      onClick={() => setFilters(DEFAULT_FILTERS)}
-                      className="mt-4"
-                      size="sm"
-                    >
-                      Filtreleri Temizle
-                    </Button>
+                    <>
+                      <motion.div
+                        animate={places.length === 0 ? undefined : { x: [-4, 4, -4] }}
+                        transition={places.length === 0 ? undefined : { repeat: Infinity, duration: 1.5 }}
+                      >
+                        <SearchX className="h-16 w-16 text-muted-foreground/30" />
+                      </motion.div>
+                      <h3 className="mt-4 text-lg font-semibold">
+                        {places.length === 0
+                          ? "Sonuç Bulunamadı"
+                          : "Filtrelere Uygun Sonuç Yok"}
+                      </h3>
+                      <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+                        {places.length === 0
+                          ? "Bu alanda mekan bulunamadı. Arama yarıçapını artırmayı deneyin."
+                          : "Aktif filtrelere uygun mekan bulunamadı. Filtreleri genişletmeyi deneyin."}
+                      </p>
+                      {places.length === 0 ? (
+                        <Button onClick={fetchPlaces} className="mt-4" size="sm">
+                          <RefreshCw className="mr-2 h-4 w-4" />
+                          Tekrar Ara
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          onClick={() => setFilters(DEFAULT_FILTERS)}
+                          className="mt-4"
+                          size="sm"
+                        >
+                          Filtreleri Temizle
+                        </Button>
+                      )}
+                    </>
                   )}
                 </motion.div>
               ) : viewMode === "grid" ? (
@@ -647,6 +730,8 @@ function PlacesExplorerInner() {
                       place={place}
                       userLocation={location}
                       onClick={() => openDetail(place)}
+                      isFavorite={isFavorite(place.id)}
+                      onToggleFavorite={toggleFavorite}
                     />
                   ))}
                 </motion.div>
@@ -670,6 +755,8 @@ function PlacesExplorerInner() {
                       place={place}
                       userLocation={location}
                       onClick={() => openDetail(place)}
+                      isFavorite={isFavorite(place.id)}
+                      onToggleFavorite={toggleFavorite}
                     />
                   ))}
                 </motion.div>
