@@ -1,5 +1,6 @@
 "use client"
 
+import { motion } from "motion/react"
 import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
@@ -116,9 +117,21 @@ export function FiltersPanel({
     <div className="flex flex-col gap-5">
       {/* Result count */}
       <div className="text-sm text-muted-foreground">
-        {filteredCount === totalCount
-          ? `${totalCount} sonuç`
-          : `${filteredCount} / ${totalCount} sonuç`}
+        {filteredCount === totalCount ? (
+          `${totalCount} sonuç`
+        ) : (
+          <>
+            <motion.span
+              key={filteredCount}
+              initial={{ scale: 1.3 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 300, damping: 15 }}
+            >
+              {filteredCount}
+            </motion.span>
+            {` / ${totalCount} sonuç`}
+          </>
+        )}
       </div>
 
       {/* Radius */}
@@ -177,6 +190,13 @@ export function FiltersPanel({
           max={5}
           step={0.5}
           className="w-full"
+        />
+        <div
+          className="mt-1 h-1 rounded-full"
+          style={{
+            background: "linear-gradient(to right, oklch(0.6 0.2 25), oklch(0.7 0.15 85), oklch(0.7 0.2 145))",
+            opacity: 0.5,
+          }}
         />
         <div className="mt-1 flex justify-between text-xs text-muted-foreground">
           <span>Hepsi</span>
