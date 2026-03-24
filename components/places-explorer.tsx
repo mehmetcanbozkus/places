@@ -771,6 +771,8 @@ function PlacesExplorerInner() {
           open={detailOpen}
           onOpenChange={setDetailOpen}
           loading={detailLoading}
+          isFavorite={detailPlace ? isFavorite(detailPlace.id) : false}
+          onToggleFavorite={toggleFavorite}
         />
 
         {/* Scroll to top */}

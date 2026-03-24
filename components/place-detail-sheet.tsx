@@ -41,6 +41,7 @@ import {
   ChevronRight,
   Share2,
   Images,
+  Heart,
 } from "lucide-react"
 import type { Place } from "@/lib/types"
 import {
@@ -56,6 +57,8 @@ interface PlaceDetailSheetProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   loading: boolean
+  isFavorite?: boolean
+  onToggleFavorite?: (placeId: string) => void
 }
 
 function PhotoGallery({
@@ -223,6 +226,8 @@ export function PlaceDetailSheet({
   open,
   onOpenChange,
   loading,
+  isFavorite,
+  onToggleFavorite,
 }: PlaceDetailSheetProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(0)
@@ -303,15 +308,31 @@ export function PlaceDetailSheet({
                             </p>
                           )}
                         </div>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-9 w-9 shrink-0"
-                          onClick={handleShare}
-                          title="Paylaş"
-                        >
-                          <Share2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex shrink-0 items-center gap-1">
+                          <motion.button
+                            onClick={() => onToggleFavorite?.(place.id)}
+                            whileTap={{ scale: 1.3 }}
+                            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                            className={`rounded-full p-2 transition-all ${
+                              isFavorite
+                                ? "text-pink-500"
+                                : "text-muted-foreground hover:bg-muted"
+                            }`}
+                            aria-label={isFavorite ? "Favorilerden çıkar" : "Favorilere ekle"}
+                            aria-pressed={isFavorite}
+                          >
+                            <Heart className="h-5 w-5" fill={isFavorite ? "currentColor" : "none"} />
+                          </motion.button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-9 w-9"
+                            onClick={handleShare}
+                            title="Paylaş"
+                          >
+                            <Share2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
 
                       <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
@@ -524,20 +545,26 @@ export function PlaceDetailSheet({
                             <Clock className="h-4 w-4" />
                             Çalışma Saatleri
                           </h3>
-                          <div className="space-y-1">
-                            {(
-                              place.regularOpeningHours?.weekdayDescriptions ||
-                              place.currentOpeningHours?.weekdayDescriptions ||
-                              []
-                            ).map((desc, i) => (
-                              <p
-                                key={i}
-                                className="text-sm text-muted-foreground"
-                              >
-                                {desc}
-                              </p>
-                            ))}
-                          </div>
+                          {(() => {
+                            const today = new Date().getDay()
+                            const todayIndex = today === 0 ? 6 : today - 1
+                            return (
+                              <div className="space-y-1">
+                                {(
+                                  place.regularOpeningHours?.weekdayDescriptions ||
+                                  place.currentOpeningHours?.weekdayDescriptions ||
+                                  []
+                                ).map((desc, i) => (
+                                  <p
+                                    key={i}
+                                    className={`text-sm text-muted-foreground ${i === todayIndex ? "rounded-md bg-primary/10 px-2 py-1 font-medium" : ""}`}
+                                  >
+                                    {desc}
+                                  </p>
+                                ))}
+                              </div>
+                            )
+                          })()}
                         </div>
                       </>
                     )}
