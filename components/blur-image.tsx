@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface BlurImageProps {
   src: string
@@ -31,9 +32,9 @@ export function BlurImage({
         />
       )}
 
-      {/* Shimmer gradient while loading */}
+      {/* Skeleton placeholder while loading */}
       {!loaded && !placeholderSrc && (
-        <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-muted via-[var(--primary)]/5 to-muted" />
+        <Skeleton className="absolute inset-0 h-full w-full rounded-none" />
       )}
 
       {/* Main image */}
