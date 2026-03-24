@@ -44,6 +44,8 @@ import {
   LayoutGrid,
   List,
   Heart,
+  Sun,
+  Moon,
 } from "lucide-react"
 import type { Place, FilterState, SortOption } from "@/lib/types"
 import {
@@ -55,6 +57,7 @@ import { parseUrlState, buildUrlParams } from "@/lib/url-state"
 import { useRecentSearches } from "@/hooks/use-recent-searches"
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh"
 import { useFavorites } from "@/hooks/use-favorites"
+import { useTheme } from "next-themes"
 
 type LocationSource = "gps" | "search"
 type ViewMode = "grid" | "list"
@@ -103,6 +106,7 @@ function PlacesExplorerInner() {
   const { favorites, toggle: toggleFavorite, isFavorite, count: favoritesCount } = useFavorites()
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
   const reducedMotion = useReducedMotion()
+  const { theme, setTheme } = useTheme()
 
   // URL state sync (debounced)
   const syncTimer = useRef<ReturnType<typeof setTimeout>>(null)
@@ -258,7 +262,11 @@ function PlacesExplorerInner() {
   // Filter and sort
   const filteredPlaces = useMemo(() => {
     const result = places.filter((place) => {
-      if (showFavoritesOnly && !favorites.includes(place.id)) return false
+      // When showing favorites only, skip ALL other filters — show every favorited place
+      if (showFavoritesOnly) {
+        return favorites.includes(place.id)
+      }
+
       if (filters.minRating > 0 && (place.rating || 0) < filters.minRating)
         return false
       if (
@@ -476,6 +484,18 @@ function PlacesExplorerInner() {
                 </Tooltip>
               </div>
 
+              {/* Theme toggle */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative h-8 w-8"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                title={theme === "dark" ? "Acik tema" : "Koyu tema"}
+              >
+                <Sun className="h-4 w-4 rotate-0 scale-100 transition-transform dark:-rotate-90 dark:scale-0" />
+                <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-transform dark:rotate-0 dark:scale-100" />
+              </Button>
+
               {/* Refresh */}
               <Button
                 variant="ghost"
@@ -495,7 +515,7 @@ function PlacesExplorerInner() {
                 <motion.button
                   onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
                   whileTap={{ scale: 0.9 }}
-                  className={`relative flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
+                  className={`relative flex h-8 w-8 items-center justify-center rounded-lg transition-colors duration-200 ${
                     showFavoritesOnly
                       ? "bg-[var(--neon-favorite)] text-white"
                       : "hover:bg-muted"
@@ -718,7 +738,7 @@ function PlacesExplorerInner() {
                     hidden: { opacity: 0 },
                     show: {
                       opacity: 1,
-                      transition: { staggerChildren: 0.06 },
+                      transition: { staggerChildren: 0.08, delayChildren: 0.04 },
                     },
                   }}
                   initial="hidden"
@@ -743,7 +763,7 @@ function PlacesExplorerInner() {
                     hidden: { opacity: 0 },
                     show: {
                       opacity: 1,
-                      transition: { staggerChildren: 0.04 },
+                      transition: { staggerChildren: 0.05, delayChildren: 0.03 },
                     },
                   }}
                   initial="hidden"

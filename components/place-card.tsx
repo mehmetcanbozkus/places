@@ -84,19 +84,18 @@ export function PlaceCard({
   return (
     <motion.div
       variants={{
-        hidden: { opacity: 0, y: 30, filter: "blur(4px)" },
+        hidden: { opacity: 0, y: 24 },
         show: {
           opacity: 1,
           y: 0,
-          filter: "blur(0px)",
-          transition: { type: "spring", stiffness: 200, damping: 20 },
+          transition: { type: "spring", stiffness: 160, damping: 20 },
         },
       }}
       whileHover={{ y: -6, scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       transition={{ type: "spring", stiffness: 300, damping: 25 }}
       onClick={onClick}
-      className="group cursor-pointer overflow-hidden rounded-xl border bg-card shadow-sm transition-shadow hover:shadow-lg"
+      className="group cursor-pointer overflow-hidden rounded-xl border bg-card shadow-sm transition-shadow duration-200 hover:shadow-lg"
       style={{
         borderTopWidth: "3px",
         borderTopColor: `var(--neon-${categoryColor.category})`,
@@ -154,7 +153,7 @@ export function PlaceCard({
           )}
           <button
             onClick={handleShare}
-            className="rounded-full bg-black/50 p-1.5 text-white opacity-0 backdrop-blur-sm transition-all group-hover:opacity-100 hover:bg-black/70"
+            className="rounded-full bg-black/50 p-1.5 text-white opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100 hover:bg-black/70"
             title="Paylaş"
           >
             <Share2 className="h-3.5 w-3.5" />
@@ -163,7 +162,7 @@ export function PlaceCard({
             onClick={handleFavorite}
             whileTap={{ scale: 1.3 }}
             transition={{ type: "spring", stiffness: 400, damping: 10 }}
-            className={`rounded-full p-1.5 backdrop-blur-sm transition-all ${
+            className={`rounded-full p-1.5 backdrop-blur-sm transition-opacity ${
               isFavorite
                 ? "bg-pink-500/80 text-white shadow-[0_0_12px_oklch(0.7_0.22_350_/_0.5)]"
                 : "bg-black/50 text-white opacity-0 group-hover:opacity-100 hover:bg-black/70"

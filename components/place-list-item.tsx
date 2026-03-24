@@ -80,7 +80,7 @@ export function PlaceListItem({
       whileHover={{ x: 4 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
       onClick={onClick}
-      className="group flex cursor-pointer gap-3 rounded-xl border bg-card p-3 shadow-sm transition-shadow hover:shadow-md"
+      className="group flex cursor-pointer gap-3 rounded-xl border bg-card p-3 shadow-sm transition-shadow duration-200 hover:shadow-md"
       style={{
         borderLeftWidth: "3px",
         borderLeftColor: `var(--neon-${categoryColor.category})`,
@@ -118,7 +118,7 @@ export function PlaceListItem({
             onClick={handleFavorite}
             whileTap={{ scale: 1.3 }}
             transition={{ type: "spring", stiffness: 400, damping: 10 }}
-            className={`shrink-0 rounded-full p-1 transition-all ${
+            className={`shrink-0 rounded-full p-1 transition-opacity ${
               isFavorite
                 ? "text-pink-500"
                 : "opacity-0 group-hover:opacity-100 text-muted-foreground hover:bg-muted"

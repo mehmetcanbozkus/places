@@ -129,10 +129,10 @@ export function QuickFilters({
     >
       {/* Favorites chip — separate from FilterState */}
       {favoritesCount > 0 && (
-        <motion.div whileTap={{ scale: 0.95 }}>
+        <motion.div whileTap={{ scale: 0.95 }} className="shrink-0">
           <Badge
             variant={showFavoritesOnly ? "default" : "outline"}
-            className={`shrink-0 cursor-pointer gap-1.5 px-3 py-1.5 text-xs font-medium transition-all ${
+            className={`cursor-pointer gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors transition-shadow duration-200 ${
               showFavoritesOnly
                 ? "bg-[var(--neon-favorite)] text-white shadow-[0_0_12px_var(--neon-favorite)] hover:bg-[var(--neon-favorite)]"
                 : "hover:shadow-sm"
@@ -149,10 +149,10 @@ export function QuickFilters({
         const active = chip.isActive(filters)
         const Icon = chip.icon
         return (
-          <motion.div key={chip.key} whileTap={{ scale: 0.95 }}>
+          <motion.div key={chip.key} whileTap={{ scale: 0.95 }} className="shrink-0">
             <Badge
               variant={active ? "default" : "outline"}
-              className={`shrink-0 cursor-pointer gap-1.5 px-3 py-1.5 text-xs font-medium transition-all ${
+              className={`cursor-pointer gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors transition-shadow duration-200 ${
                 active
                   ? "shadow-[0_0_10px_var(--primary)] hover:shadow-[0_0_14px_var(--primary)]"
                   : "hover:shadow-sm"
