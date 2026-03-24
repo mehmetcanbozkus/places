@@ -254,7 +254,7 @@ export function LocationSearch({
           }}
           onKeyDown={handleKeyDown}
           placeholder="Konum veya adres ara..."
-          className="pr-9 pl-9"
+          className="pr-9 pl-9 focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_15px_var(--primary)]"
         />
         {loading && (
           <Loader2 className="absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
@@ -270,7 +270,15 @@ export function LocationSearch({
             transition={{ duration: 0.15 }}
             className="absolute top-full z-50 mt-1.5 w-full overflow-hidden rounded-xl border bg-popover shadow-lg"
           >
-            <div className="max-h-72 overflow-y-auto py-1">
+            <motion.div
+              className="max-h-72 overflow-y-auto py-1"
+              initial="hidden"
+              animate="show"
+              variants={{
+                hidden: { opacity: 0 },
+                show: { opacity: 1, transition: { staggerChildren: 0.03 } },
+              }}
+            >
               {/* Recent searches (when no query) */}
               {showRecents && (
                 <>
@@ -292,31 +300,35 @@ export function LocationSearch({
                     )}
                   </div>
                   {recentSearches.map((recent) => (
-                    <button
+                    <motion.div
                       key={recent.placeId}
-                      className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-accent/50"
-                      onClick={() => {
-                        setQuery(recent.label.split(",")[0])
-                        setOpen(false)
-                        onRecentSelect?.(recent.placeId, recent.label)
-                      }}
+                      variants={{ hidden: { opacity: 0, y: -4 }, show: { opacity: 1, y: 0 } }}
                     >
-                      <Clock className="h-4 w-4 shrink-0 text-muted-foreground" />
-                      <span className="min-w-0 flex-1 truncate text-sm">
-                        {recent.label}
-                      </span>
-                      {onRecentRemove && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            onRecentRemove(recent.placeId)
-                          }}
-                          className="shrink-0 rounded p-0.5 hover:bg-muted"
-                        >
-                          <X className="h-3 w-3 text-muted-foreground" />
-                        </button>
-                      )}
-                    </button>
+                      <button
+                        className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-accent/50"
+                        onClick={() => {
+                          setQuery(recent.label.split(",")[0])
+                          setOpen(false)
+                          onRecentSelect?.(recent.placeId, recent.label)
+                        }}
+                      >
+                        <Clock className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        <span className="min-w-0 flex-1 truncate text-sm">
+                          {recent.label}
+                        </span>
+                        {onRecentRemove && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              onRecentRemove(recent.placeId)
+                            }}
+                            className="shrink-0 rounded p-0.5 hover:bg-muted"
+                          >
+                            <X className="h-3 w-3 text-muted-foreground" />
+                          </button>
+                        )}
+                      </button>
+                    </motion.div>
                   ))}
                   {suggestions.length > 0 && (
                     <div className="mx-3 my-1 border-t" />
@@ -330,31 +342,35 @@ export function LocationSearch({
                 const isActive = selectedIndex === i
 
                 return (
-                  <button
+                  <motion.div
                     key={suggestion.placeId}
-                    className={`flex w-full items-start gap-3 px-3 py-2.5 text-left transition-colors ${
-                      isActive ? "bg-accent" : "hover:bg-accent/50"
-                    }`}
-                    onClick={() => selectSuggestion(suggestion)}
-                    onMouseEnter={() => setSelectedIndex(i)}
+                    variants={{ hidden: { opacity: 0, y: -4 }, show: { opacity: 1, y: 0 } }}
                   >
-                    <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">
-                        {suggestion.mainText}
-                      </p>
-                      {suggestion.secondaryText && (
-                        <p className="truncate text-xs text-muted-foreground">
-                          {suggestion.secondaryText}
+                    <button
+                      className={`flex w-full items-start gap-3 px-3 py-2.5 text-left transition-colors ${
+                        isActive ? "bg-accent" : "hover:bg-accent/50"
+                      }`}
+                      onClick={() => selectSuggestion(suggestion)}
+                      onMouseEnter={() => setSelectedIndex(i)}
+                    >
+                      <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">
+                          {suggestion.mainText}
                         </p>
+                        {suggestion.secondaryText && (
+                          <p className="truncate text-xs text-muted-foreground">
+                            {suggestion.secondaryText}
+                          </p>
+                        )}
+                      </div>
+                      {dist && (
+                        <span className="mt-0.5 shrink-0 text-xs text-muted-foreground">
+                          {dist}
+                        </span>
                       )}
-                    </div>
-                    {dist && (
-                      <span className="mt-0.5 shrink-0 text-xs text-muted-foreground">
-                        {dist}
-                      </span>
-                    )}
-                  </button>
+                    </button>
+                  </motion.div>
                 )
               })}
 
@@ -399,7 +415,7 @@ export function LocationSearch({
                     Sonuç bulunamadı
                   </div>
                 )}
-            </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
