@@ -22,7 +22,8 @@ export function ScrollToTop() {
           exit={{ opacity: 0, scale: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 25 }}
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="fixed right-5 bottom-5 z-30 rounded-full bg-primary p-3 text-primary-foreground shadow-lg transition-colors hover:bg-primary/90"
+          className="fixed right-5 bottom-5 z-30 rounded-full p-3 text-white shadow-lg transition-all hover:shadow-[0_0_20px_var(--primary)]"
+          style={{ background: "linear-gradient(135deg, var(--primary), var(--neon-restaurant))" }}
           title="Yukarı çık"
         >
           <ArrowUp className="h-5 w-5" />
