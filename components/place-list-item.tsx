@@ -9,6 +9,7 @@ import {
   Clock,
   Share2,
   UtensilsCrossed,
+  Heart,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import type { Place } from "@/lib/types"
@@ -20,18 +21,20 @@ import {
   haversineDistance,
   sharePlace,
   getRatingColor,
+  getCategoryColor,
+  getRatingGlow,
 } from "@/lib/types"
 
 interface PlaceListItemProps {
   place: Place
   userLocation?: { lat: number; lng: number } | null
   onClick: () => void
+  isFavorite?: boolean
+  onToggleFavorite?: (placeId: string) => void
 }
 
 export function PlaceListItem({
-  place,
-  userLocation,
-  onClick,
+  place, userLocation, onClick, isFavorite = false, onToggleFavorite,
 }: PlaceListItemProps) {
   const photoUrl = place.photos?.[0]
     ? getPhotoUrl(place.photos[0].name, 200)
@@ -53,6 +56,13 @@ export function PlaceListItem({
 
   const isOpen = place.currentOpeningHours?.openNow
   const ratingColor = place.rating ? getRatingColor(place.rating) : null
+  const ratingGlow = place.rating ? getRatingGlow(place.rating) : undefined
+  const categoryColor = getCategoryColor(place.primaryType, place.types)
+
+  const handleFavorite = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onToggleFavorite?.(place.id)
+  }
 
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -71,6 +81,10 @@ export function PlaceListItem({
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
       onClick={onClick}
       className="group flex cursor-pointer gap-3 rounded-xl border bg-card p-3 shadow-sm transition-shadow hover:shadow-md"
+      style={{
+        borderLeftWidth: "3px",
+        borderLeftColor: `var(--neon-${categoryColor.category})`,
+      }}
     >
       {/* Thumbnail */}
       <div className="h-20 w-24 shrink-0 overflow-hidden rounded-lg bg-muted">
@@ -100,6 +114,20 @@ export function PlaceListItem({
           >
             <Share2 className="h-3.5 w-3.5 text-muted-foreground" />
           </button>
+          <motion.button
+            onClick={handleFavorite}
+            whileTap={{ scale: 1.3 }}
+            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+            className={`shrink-0 rounded-full p-1 transition-all ${
+              isFavorite
+                ? "text-pink-500"
+                : "opacity-0 group-hover:opacity-100 text-muted-foreground hover:bg-muted"
+            }`}
+            aria-label={isFavorite ? "Favorilerden çıkar" : "Favorilere ekle"}
+            aria-pressed={isFavorite}
+          >
+            <Heart className="h-3.5 w-3.5" fill={isFavorite ? "currentColor" : "none"} />
+          </motion.button>
         </div>
 
         {place.primaryTypeDisplayName && (
@@ -110,7 +138,7 @@ export function PlaceListItem({
 
         <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
           {place.rating !== undefined && ratingColor && (
-            <div className="flex items-center gap-0.5">
+            <div className="flex items-center gap-0.5" style={{ textShadow: ratingGlow }}>
               <Star
                 className={`h-3.5 w-3.5 ${ratingColor.fill} ${ratingColor.text}`}
               />
