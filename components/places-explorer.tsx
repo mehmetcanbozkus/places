@@ -8,6 +8,7 @@ import {
   useRef,
   Suspense,
 } from "react"
+import { flushSync } from "react-dom"
 import { useSearchParams, useRouter } from "next/navigation"
 import { motion, AnimatePresence, useReducedMotion } from "motion/react"
 import { PlaceCard } from "./place-card"
@@ -106,7 +107,55 @@ function PlacesExplorerInner() {
   const { favorites, toggle: toggleFavorite, isFavorite, count: favoritesCount } = useFavorites()
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
   const reducedMotion = useReducedMotion()
-  const { theme, setTheme } = useTheme()
+  const { resolvedTheme, setTheme } = useTheme()
+  const themeToggleRef = useRef<HTMLButtonElement>(null)
+
+  const toggleTheme = useCallback(() => {
+    const newTheme = resolvedTheme === "dark" ? "light" : "dark"
+
+    // Fallback for browsers without View Transitions API
+    if (
+      !document.startViewTransition ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      setTheme(newTheme)
+      return
+    }
+
+    const transition = document.startViewTransition(() => {
+      flushSync(() => {
+        setTheme(newTheme)
+      })
+    })
+
+    // Circular reveal from button position
+    transition.ready.then(() => {
+      const button = themeToggleRef.current
+      if (!button) return
+
+      const { top, left, width, height } = button.getBoundingClientRect()
+      const x = left + width / 2
+      const y = top + height / 2
+      const maxRadius = Math.hypot(
+        Math.max(x, window.innerWidth - x),
+        Math.max(y, window.innerHeight - y)
+      )
+
+      document.documentElement.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${maxRadius}px at ${x}px ${y}px)`,
+          ],
+        },
+        {
+          duration: 500,
+          easing: "ease-in-out",
+          pseudoElement: "::view-transition-new(root)",
+        }
+      )
+    })
+  }, [resolvedTheme, setTheme])
 
   // URL state sync (debounced)
   const syncTimer = useRef<ReturnType<typeof setTimeout>>(null)
@@ -486,14 +535,15 @@ function PlacesExplorerInner() {
 
               {/* Theme toggle */}
               <Button
+                ref={themeToggleRef}
                 variant="ghost"
                 size="icon"
                 className="relative h-8 w-8"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                title={theme === "dark" ? "Acik tema" : "Koyu tema"}
+                onClick={toggleTheme}
+                title={resolvedTheme === "dark" ? "Açık tema" : "Koyu tema"}
               >
                 <AnimatePresence mode="wait" initial={false}>
-                  {theme === "dark" ? (
+                  {resolvedTheme === "dark" ? (
                     <motion.span
                       key="moon"
                       initial={{ rotate: -90, scale: 0, opacity: 0 }}
