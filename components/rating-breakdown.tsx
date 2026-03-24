@@ -3,7 +3,7 @@
 import { motion } from "motion/react"
 import { Star } from "lucide-react"
 import type { Review } from "@/lib/types"
-import { getRatingColor, formatReviewCount } from "@/lib/types"
+import { getRatingColor, getRatingGlow, formatReviewCount } from "@/lib/types"
 
 interface RatingBreakdownProps {
   reviews: Review[]
@@ -33,7 +33,7 @@ export function RatingBreakdown({
       {/* Overall rating */}
       {overallRating !== undefined && (
         <div className="flex shrink-0 flex-col items-center justify-center">
-          <span className={`text-3xl font-bold ${ratingColor?.text || ""}`}>
+          <span className={`text-3xl font-bold ${ratingColor?.text || ""}`} style={{ textShadow: getRatingGlow(overallRating) }}>
             {overallRating.toFixed(1)}
           </span>
           <div className="mt-1 flex gap-0.5">
