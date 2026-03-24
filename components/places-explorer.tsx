@@ -492,8 +492,31 @@ function PlacesExplorerInner() {
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                 title={theme === "dark" ? "Acik tema" : "Koyu tema"}
               >
-                <Sun className="h-4 w-4 rotate-0 scale-100 transition-transform dark:-rotate-90 dark:scale-0" />
-                <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-transform dark:rotate-0 dark:scale-100" />
+                <AnimatePresence mode="wait" initial={false}>
+                  {theme === "dark" ? (
+                    <motion.span
+                      key="moon"
+                      initial={{ rotate: -90, scale: 0, opacity: 0 }}
+                      animate={{ rotate: 0, scale: 1, opacity: 1 }}
+                      exit={{ rotate: 90, scale: 0, opacity: 0 }}
+                      transition={{ type: "spring", stiffness: 250, damping: 20, duration: 0.3 }}
+                      className="absolute inset-0 flex items-center justify-center"
+                    >
+                      <Moon className="h-4 w-4" />
+                    </motion.span>
+                  ) : (
+                    <motion.span
+                      key="sun"
+                      initial={{ rotate: 90, scale: 0, opacity: 0 }}
+                      animate={{ rotate: 0, scale: 1, opacity: 1 }}
+                      exit={{ rotate: -90, scale: 0, opacity: 0 }}
+                      transition={{ type: "spring", stiffness: 250, damping: 20, duration: 0.3 }}
+                      className="absolute inset-0 flex items-center justify-center"
+                    >
+                      <Sun className="h-4 w-4" />
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </Button>
 
               {/* Refresh */}

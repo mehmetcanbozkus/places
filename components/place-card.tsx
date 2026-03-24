@@ -1,6 +1,6 @@
 "use client"
 
-import { motion } from "motion/react"
+import { motion, useReducedMotion } from "motion/react"
 import { toast } from "sonner"
 import {
   Star,
@@ -66,6 +66,8 @@ export function PlaceCard({
   const ratingGlow = place.rating ? getRatingGlow(place.rating) : undefined
   const categoryColor = getCategoryColor(place.primaryType, place.types)
 
+  const reducedMotion = useReducedMotion()
+
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation()
     const result = await sharePlace(place)
@@ -104,16 +106,22 @@ export function PlaceCard({
       {/* Photo */}
       <div className="relative aspect-[16/10] overflow-hidden bg-muted">
         {photoUrl ? (
-          <BlurImage
-            src={photoUrl}
-            placeholderSrc={
-              place.photos?.[0]
-                ? getPhotoUrl(place.photos[0].name, 32)
-                : undefined
-            }
-            alt={place.displayName.text}
-            className="h-full w-full transition-transform duration-500 group-hover:scale-[1.08]"
-          />
+          <motion.div
+            className="h-full w-full"
+            whileHover={reducedMotion ? undefined : { scale: 1.08 }}
+            transition={{ type: "spring", stiffness: 200, damping: 25, duration: 0.5 }}
+          >
+            <BlurImage
+              src={photoUrl}
+              placeholderSrc={
+                place.photos?.[0]
+                  ? getPhotoUrl(place.photos[0].name, 32)
+                  : undefined
+              }
+              alt={place.displayName.text}
+              className="h-full w-full"
+            />
+          </motion.div>
         ) : (
           <div className="flex h-full items-center justify-center">
             <UtensilsCrossed className="h-12 w-12 text-muted-foreground/30" />
