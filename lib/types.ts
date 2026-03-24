@@ -198,6 +198,37 @@ export function getRatingColor(rating: number): {
   return { text: "text-red-500", fill: "fill-red-500" }
 }
 
+const RESTAURANT_TYPES = new Set([
+  "restaurant", "turkish_restaurant", "italian_restaurant", "chinese_restaurant",
+  "japanese_restaurant", "mexican_restaurant", "thai_restaurant", "indian_restaurant",
+  "seafood_restaurant", "steak_house", "pizza_restaurant", "hamburger_restaurant",
+  "kebab_shop", "fast_food_restaurant", "meal_takeaway",
+])
+const CAFE_TYPES = new Set(["cafe", "coffee_shop", "tea_house", "bakery"])
+const BAR_TYPES = new Set(["bar", "night_club", "pub", "wine_bar", "cocktail_bar"])
+const PASTRY_TYPES = new Set(["pastry_shop", "dessert_shop", "ice_cream_shop", "confectionery"])
+
+export interface CategoryColor {
+  dark: string
+  light: string
+  category: string
+}
+
+export function getCategoryColor(primaryType?: string, types?: string[]): CategoryColor {
+  const type = primaryType || types?.[0] || ""
+  if (RESTAURANT_TYPES.has(type)) return { dark: "oklch(0.75 0.2 45)", light: "oklch(0.55 0.2 45)", category: "restaurant" }
+  if (CAFE_TYPES.has(type)) return { dark: "oklch(0.75 0.2 145)", light: "oklch(0.45 0.18 145)", category: "cafe" }
+  if (BAR_TYPES.has(type)) return { dark: "oklch(0.7 0.25 310)", light: "oklch(0.5 0.22 310)", category: "bar" }
+  if (PASTRY_TYPES.has(type)) return { dark: "oklch(0.75 0.22 350)", light: "oklch(0.55 0.2 350)", category: "pastry" }
+  return { dark: "oklch(0.75 0.18 230)", light: "oklch(0.5 0.18 230)", category: "other" }
+}
+
+export function getRatingGlow(rating: number): string {
+  if (rating >= 4.5) return "0 0 12px oklch(0.7 0.2 145 / 0.4)"
+  if (rating >= 3.5) return "0 0 12px oklch(0.7 0.15 85 / 0.4)"
+  return "0 0 12px oklch(0.6 0.2 25 / 0.4)"
+}
+
 export function getPhotoUrl(
   photoName: string,
   maxWidthPx: number = 400
