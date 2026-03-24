@@ -9,7 +9,7 @@ import {
   Suspense,
 } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
-import { motion, AnimatePresence } from "motion/react"
+import { motion, AnimatePresence, useReducedMotion } from "motion/react"
 import { PlaceCard } from "./place-card"
 import { PlaceListItem } from "./place-list-item"
 import { PlaceDetailSheet } from "./place-detail-sheet"
@@ -102,6 +102,7 @@ function PlacesExplorerInner() {
 
   const { favorites, toggle: toggleFavorite, isFavorite, count: favoritesCount } = useFavorites()
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
+  const reducedMotion = useReducedMotion()
 
   // URL state sync (debounced)
   const syncTimer = useRef<ReturnType<typeof setTimeout>>(null)
@@ -654,8 +655,8 @@ function PlacesExplorerInner() {
                   {showFavoritesOnly ? (
                     <>
                       <motion.div
-                        animate={{ scale: [1, 1.1, 1] }}
-                        transition={{ repeat: Infinity, duration: 1.5 }}
+                        animate={reducedMotion ? undefined : { scale: [1, 1.1, 1] }}
+                        transition={reducedMotion ? undefined : { repeat: Infinity, duration: 1.5 }}
                       >
                         <Heart className="h-16 w-16 text-pink-300" />
                       </motion.div>
@@ -677,8 +678,8 @@ function PlacesExplorerInner() {
                   ) : (
                     <>
                       <motion.div
-                        animate={places.length === 0 ? undefined : { x: [-4, 4, -4] }}
-                        transition={places.length === 0 ? undefined : { repeat: Infinity, duration: 1.5 }}
+                        animate={reducedMotion || places.length === 0 ? undefined : { x: [-4, 4, -4] }}
+                        transition={reducedMotion || places.length === 0 ? undefined : { repeat: Infinity, duration: 1.5 }}
                       >
                         <SearchX className="h-16 w-16 text-muted-foreground/30" />
                       </motion.div>
