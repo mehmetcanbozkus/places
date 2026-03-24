@@ -11,6 +11,7 @@ import {
   UtensilsCrossed,
   ShoppingBag,
   Share2,
+  Heart,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { BlurImage } from "./blur-image"
@@ -23,15 +24,25 @@ import {
   haversineDistance,
   sharePlace,
   getRatingColor,
+  getCategoryColor,
+  getRatingGlow,
 } from "@/lib/types"
 
 interface PlaceCardProps {
   place: Place
   userLocation?: { lat: number; lng: number } | null
   onClick: () => void
+  isFavorite?: boolean
+  onToggleFavorite?: (placeId: string) => void
 }
 
-export function PlaceCard({ place, userLocation, onClick }: PlaceCardProps) {
+export function PlaceCard({
+  place,
+  userLocation,
+  onClick,
+  isFavorite = false,
+  onToggleFavorite,
+}: PlaceCardProps) {
   const photoUrl = place.photos?.[0]
     ? getPhotoUrl(place.photos[0].name, 600)
     : null
@@ -52,6 +63,8 @@ export function PlaceCard({ place, userLocation, onClick }: PlaceCardProps) {
 
   const isOpen = place.currentOpeningHours?.openNow
   const ratingColor = place.rating ? getRatingColor(place.rating) : null
+  const ratingGlow = place.rating ? getRatingGlow(place.rating) : undefined
+  const categoryColor = getCategoryColor(place.primaryType, place.types)
 
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -63,16 +76,31 @@ export function PlaceCard({ place, userLocation, onClick }: PlaceCardProps) {
     }
   }
 
+  const handleFavorite = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onToggleFavorite?.(place.id)
+  }
+
   return (
     <motion.div
       variants={{
-        hidden: { opacity: 0, y: 24 },
-        show: { opacity: 1, y: 0 },
+        hidden: { opacity: 0, y: 30, filter: "blur(4px)" },
+        show: {
+          opacity: 1,
+          y: 0,
+          filter: "blur(0px)",
+          transition: { type: "spring", stiffness: 200, damping: 20 },
+        },
       }}
-      whileHover={{ y: -4 }}
-      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      whileHover={{ y: -6, scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: "spring", stiffness: 300, damping: 25 }}
       onClick={onClick}
       className="group cursor-pointer overflow-hidden rounded-xl border bg-card shadow-sm transition-shadow hover:shadow-lg"
+      style={{
+        borderTopWidth: "3px",
+        borderTopColor: `var(--neon-${categoryColor.category})`,
+      }}
     >
       {/* Photo */}
       <div className="relative aspect-[16/10] overflow-hidden bg-muted">
@@ -85,7 +113,7 @@ export function PlaceCard({ place, userLocation, onClick }: PlaceCardProps) {
                 : undefined
             }
             alt={place.displayName.text}
-            className="h-full w-full transition-transform duration-500 group-hover:scale-105"
+            className="h-full w-full transition-transform duration-500 group-hover:scale-[1.08]"
           />
         ) : (
           <div className="flex h-full items-center justify-center">
@@ -93,15 +121,18 @@ export function PlaceCard({ place, userLocation, onClick }: PlaceCardProps) {
           </div>
         )}
 
-        {/* Open/Closed badge */}
+        {/* Gradient overlay on photo */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 to-transparent" />
+
+        {/* Open/Closed badge with neon glow */}
         {isOpen !== undefined && (
           <div className="absolute top-3 left-3">
             <Badge
               variant={isOpen ? "default" : "secondary"}
               className={
                 isOpen
-                  ? "bg-emerald-500/90 text-white backdrop-blur-sm hover:bg-emerald-500/90"
-                  : "bg-red-500/90 text-white backdrop-blur-sm hover:bg-red-500/90"
+                  ? "bg-emerald-500/90 text-white backdrop-blur-sm hover:bg-emerald-500/90 shadow-[0_0_10px_oklch(0.7_0.2_145_/_0.4)]"
+                  : "bg-red-500/90 text-white backdrop-blur-sm hover:bg-red-500/90 shadow-[0_0_10px_oklch(0.6_0.2_25_/_0.4)]"
               }
             >
               <Clock className="mr-1 h-3 w-3" />
@@ -110,7 +141,7 @@ export function PlaceCard({ place, userLocation, onClick }: PlaceCardProps) {
           </div>
         )}
 
-        {/* Top right: distance + share */}
+        {/* Top right: distance + share + favorite */}
         <div className="absolute top-3 right-3 flex items-center gap-1.5">
           {distance !== null && (
             <Badge
@@ -128,25 +159,49 @@ export function PlaceCard({ place, userLocation, onClick }: PlaceCardProps) {
           >
             <Share2 className="h-3.5 w-3.5" />
           </button>
+          <motion.button
+            onClick={handleFavorite}
+            whileTap={{ scale: 1.3 }}
+            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+            className={`rounded-full p-1.5 backdrop-blur-sm transition-all ${
+              isFavorite
+                ? "bg-pink-500/80 text-white shadow-[0_0_12px_oklch(0.7_0.22_350_/_0.5)]"
+                : "bg-black/50 text-white opacity-0 group-hover:opacity-100 hover:bg-black/70"
+            }`}
+            aria-label={isFavorite ? "Favorilerden çıkar" : "Favorilere ekle"}
+            aria-pressed={isFavorite}
+          >
+            <Heart
+              className="h-3.5 w-3.5"
+              fill={isFavorite ? "currentColor" : "none"}
+            />
+          </motion.button>
+        </div>
+
+        {/* Place name overlay on photo */}
+        <div className="absolute bottom-2 left-3 right-3">
+          <h3 className="truncate text-sm font-semibold text-white drop-shadow-md">
+            {place.displayName.text}
+          </h3>
         </div>
       </div>
 
       {/* Content */}
       <div className="p-4">
-        {/* Name and type */}
-        <h3 className="truncate text-base leading-tight font-semibold">
-          {place.displayName.text}
-        </h3>
+        {/* Type */}
         {place.primaryTypeDisplayName && (
-          <p className="mt-0.5 truncate text-sm text-muted-foreground">
+          <p className="truncate text-sm text-muted-foreground">
             {place.primaryTypeDisplayName.text}
           </p>
         )}
 
         {/* Rating, reviews, price */}
-        <div className="mt-2.5 flex items-center gap-3 text-sm">
+        <div className="mt-2 flex items-center gap-3 text-sm">
           {place.rating !== undefined && ratingColor && (
-            <div className="flex items-center gap-1">
+            <div
+              className="flex items-center gap-1 rounded-md px-1.5 py-0.5"
+              style={{ boxShadow: ratingGlow }}
+            >
               <Star
                 className={`h-4 w-4 ${ratingColor.fill} ${ratingColor.text}`}
               />
