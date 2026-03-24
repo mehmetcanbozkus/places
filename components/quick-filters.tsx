@@ -1,5 +1,6 @@
 "use client"
 
+import { motion } from "motion/react"
 import { Badge } from "@/components/ui/badge"
 import {
   Clock,
@@ -13,12 +14,16 @@ import {
   Music,
   Wine,
   UtensilsCrossed,
+  Heart,
 } from "lucide-react"
 import type { FilterState } from "@/lib/types"
 
 interface QuickFiltersProps {
   filters: FilterState
   onFiltersChange: (filters: FilterState) => void
+  showFavoritesOnly?: boolean
+  onToggleFavorites?: () => void
+  favoritesCount?: number
 }
 
 const CHIPS: {
@@ -110,25 +115,54 @@ const CHIPS: {
   },
 ]
 
-export function QuickFilters({ filters, onFiltersChange }: QuickFiltersProps) {
+export function QuickFilters({
+  filters,
+  onFiltersChange,
+  showFavoritesOnly = false,
+  onToggleFavorites,
+  favoritesCount = 0,
+}: QuickFiltersProps) {
   return (
     <div
       className="scrollbar-hide flex gap-2 overflow-x-auto pb-1"
       style={{ scrollbarWidth: "none" }}
     >
+      {/* Favorites chip — separate from FilterState */}
+      {favoritesCount > 0 && (
+        <motion.div whileTap={{ scale: 0.95 }}>
+          <Badge
+            variant={showFavoritesOnly ? "default" : "outline"}
+            className={`shrink-0 cursor-pointer gap-1.5 px-3 py-1.5 text-xs font-medium transition-all ${
+              showFavoritesOnly
+                ? "bg-[var(--neon-favorite)] text-white shadow-[0_0_12px_var(--neon-favorite)] hover:bg-[var(--neon-favorite)]"
+                : "hover:shadow-sm"
+            }`}
+            onClick={onToggleFavorites}
+          >
+            <Heart className="h-3 w-3" fill={showFavoritesOnly ? "currentColor" : "none"} />
+            Favoriler ({favoritesCount})
+          </Badge>
+        </motion.div>
+      )}
+
       {CHIPS.map((chip) => {
         const active = chip.isActive(filters)
         const Icon = chip.icon
         return (
-          <Badge
-            key={chip.key}
-            variant={active ? "default" : "outline"}
-            className="shrink-0 cursor-pointer gap-1.5 px-3 py-1.5 text-xs font-medium transition-all hover:shadow-sm"
-            onClick={() => onFiltersChange(chip.toggle(filters))}
-          >
-            <Icon className="h-3 w-3" />
-            {chip.label}
-          </Badge>
+          <motion.div key={chip.key} whileTap={{ scale: 0.95 }}>
+            <Badge
+              variant={active ? "default" : "outline"}
+              className={`shrink-0 cursor-pointer gap-1.5 px-3 py-1.5 text-xs font-medium transition-all ${
+                active
+                  ? "shadow-[0_0_10px_var(--primary)] hover:shadow-[0_0_14px_var(--primary)]"
+                  : "hover:shadow-sm"
+              }`}
+              onClick={() => onFiltersChange(chip.toggle(filters))}
+            >
+              <Icon className="h-3 w-3" />
+              {chip.label}
+            </Badge>
+          </motion.div>
         )
       })}
     </div>
