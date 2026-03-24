@@ -33,7 +33,7 @@ export function BlurImage({
 
       {/* Shimmer gradient while loading */}
       {!loaded && !placeholderSrc && (
-        <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-muted via-muted-foreground/5 to-muted" />
+        <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-muted via-[var(--primary)]/5 to-muted" />
       )}
 
       {/* Main image */}
