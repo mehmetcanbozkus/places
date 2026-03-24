@@ -11,17 +11,21 @@
 
 ### 1.1 Kategori Bazli Neon Renk Kodlamasi
 
-Her mekan tipi icin farkli neon accent renk:
+Her mekan tipi icin farkli neon accent renk. Mapping `Place.primaryType` alanina dayanir (Google Places API'den gelen machine-readable string). `primaryType` undefined ise `Place.types` dizisinin ilk elemani kullanilir; her ikisi de yoksa "diger" kategorisine duser.
 
-| Kategori | Neon Renk | Kullanim |
-|----------|-----------|----------|
-| Restoran | Elektrik turuncu `#FF6B2C` | Kart ust border, hover glow |
-| Kafe | Neon yesil `#39FF14` | Kart ust border, hover glow |
-| Bar | Canli mor `#BF40FF` | Kart ust border, hover glow |
-| Pastane | Sicak pembe `#FF1493` | Kart ust border, hover glow |
-| Diger | Elektrik mavi `#00D4FF` | Kart ust border, hover glow |
+**primaryType → Kategori Mapping Tablosu:**
 
-Renkler `lib/types.ts` icerisinde bir mapping fonksiyonu ile mekan tipine gore dondurulecek.
+| Kategori | primaryType degerleri | Neon Renk (Dark) | Neon Renk (Light) |
+|----------|----------------------|------------------|-------------------|
+| Restoran | `restaurant`, `turkish_restaurant`, `italian_restaurant`, `chinese_restaurant`, `japanese_restaurant`, `mexican_restaurant`, `thai_restaurant`, `indian_restaurant`, `seafood_restaurant`, `steak_house`, `pizza_restaurant`, `hamburger_restaurant`, `kebab_shop`, `fast_food_restaurant`, `meal_takeaway` | `oklch(0.75 0.2 45)` | `oklch(0.55 0.2 45)` |
+| Kafe | `cafe`, `coffee_shop`, `tea_house`, `bakery` | `oklch(0.75 0.2 145)` | `oklch(0.45 0.18 145)` |
+| Bar | `bar`, `night_club`, `pub`, `wine_bar`, `cocktail_bar` | `oklch(0.7 0.25 310)` | `oklch(0.5 0.22 310)` |
+| Pastane | `pastry_shop`, `dessert_shop`, `ice_cream_shop`, `confectionery` | `oklch(0.75 0.22 350)` | `oklch(0.55 0.2 350)` |
+| Diger | Yukaridaki listelere uymayan tum tipler + undefined | `oklch(0.75 0.18 230)` | `oklch(0.5 0.18 230)` |
+
+> **Not:** Renkler oklch formatinda tanimlanir (mevcut renk sistemiyle tutarli). Dark mode'da daha yuksek luminance, light mode'da daha dusuk luminance kullanilarak her iki temada yeterli kontrast saglanir.
+
+Mapping fonksiyonu `lib/types.ts` icerisinde `getCategoryColor(primaryType?: string, types?: string[]): { dark: string, light: string, category: string }` olarak eklenir.
 
 ### 1.2 Gradient Header
 
@@ -79,10 +83,10 @@ const cardVariants = {
 ### 2.3 Rating Gosterimi
 
 - Yildizlar dolum animasyonlu (soldan saga fill, stagger 0.1s)
-- Rating sayisi renk kodlu neon glow:
-  - 4.5+: yesil neon glow
-  - 3.5+: amber neon glow
-  - <3.5: kirmizi neon glow
+- Rating sayisi renk kodlu neon glow. Mevcut `getRatingColor()` fonksiyonu (Tailwind class donduruyor) korunur ve genisletilir: yeni bir `getRatingGlow()` fonksiyonu eklenir (veya `getRatingColor` return tipi genisletilir) — glow icin inline shadow string dondurecek:
+  - 4.5+: yesil neon glow `0 0 12px oklch(0.7 0.2 145 / 0.4)`
+  - 3.5+: amber neon glow `0 0 12px oklch(0.7 0.15 85 / 0.4)`
+  - <3.5: kirmizi neon glow `0 0 12px oklch(0.6 0.2 25 / 0.4)`
 
 ---
 
@@ -124,12 +128,13 @@ Her chip'e ilgili kucuk ikon: Open Now (saat), Delivery (kutu), Vegetarian (yapr
 
 **Animasyonlar:**
 - Tiklama: scale 0→1.3→1 spring + renk gecisi (gri → neon pembe/kirmizi)
-- Favori eklendiginde kucuk parcacik efekti (4-6 kucuk kalp burst)
+- **(Stretch goal)** Favori eklendiginde kucuk parcacik efekti: 4-6 adet absolutely-positioned `motion.div` (kucuk kalp) spawn edilir, rastgele yon ve mesafeye dogru animasyonlanir (opacity 1→0, scale 1→0.5), 600ms sonra DOM'dan kaldirilir. Motion'in built-in parcacik sistemi yok, bu nedenle implementasyon karmasikligi yuksek — oncelik dusuktur.
 
 ### 4.2 Veri Depolama
 
 - `localStorage` ile (`favorites` key, place ID array olarak)
 - Custom hook: `useFavorites()`
+- Cross-tab senkronizasyon kapsam disi — mevcut `useRecentSearches` hook'u ile tutarli yaklasim
 
 ```typescript
 interface UseFavoritesReturn {
@@ -141,6 +146,11 @@ interface UseFavoritesReturn {
 ```
 
 ### 4.3 Favori Filtresi
+
+**Onemli:** Favoriler filtresi `FilterState` arayuzune EKLENMEZ. Favori durumu yalnizca yerel (localStorage) oldugu icin URL state ile senkronize edilmemelidir. Bunun yerine `places-explorer.tsx` icerisinde ayri bir `showFavoritesOnly: boolean` state olarak yonetilir. Bu state:
+- `FilterState`, `DEFAULT_FILTERS`, `countActiveFilters`, `parseUrlState`, `buildUrlParams` fonksiyonlarini ETKiLEMEZ
+- Quick filter bar'da ozel bir chip olarak gosterilir (diger filtrelerden bagimsiz)
+- `lib/url-state.ts` dosyasinda degisiklik GEREKMEZ
 
 - Quick filter bar'a "Favoriler" chip'i (kalp ikonu, neon pembe)
 - Aktifken sadece favorilenen mekanlar gosterilir
@@ -166,7 +176,7 @@ interface UseFavoritesReturn {
 | Durum | Animasyon | Mesaj |
 |-------|-----------|-------|
 | Sonuc bulunamadi | Buyutec saga-sola hareket | Oneri mesaji |
-| Filtre sonucu bos | Filtre ikonundan parcacik dagilma | "Filtreleri gevset" butonu |
+| Filtre sonucu bos | Filtre ikonu titresim animasyonu (shake) | "Filtreleri gevset" butonu |
 | Favoriler bos | Kalbin atma animasyonu | "Kesfetmeye basla" CTA |
 
 ### 5.3 Detay Sheet Iyilestirme
@@ -211,7 +221,32 @@ interface UseFavoritesReturn {
 
 ### Performans Hususlari
 
-- Neon glow efektleri `box-shadow` ile uygulanacak (GPU-accelerated)
+- Neon glow efektleri: Statik glow icin `box-shadow` CSS kullanilir (hover state degisikligi, animasyonlu degil). Animasyonlu glow gereken yerlerde (pulse, giris efekti) `::after` pseudo-element uzerine sabit blur shadow koyulur ve `opacity` animasyonlanir — bu GPU-composited'dir. `box-shadow` degeri animasyonlanMAZ (paint tetikler).
 - `will-change: transform` sadece aktif animasyonlu elemanlarda
-- `whileInView` icin `viewport={{ once: true }}` ile tekrar tetikleme onlenir
-- localStorage islemleri senkron — kucuk veri seti (ID array) icin sorun teskil etmez
+- `whileInView` kullanimi: Sadece ilk yukleme sonrasi ek sonuclar (ornegin "daha fazla goster" ile yuklenen kartlar) icin kullanilir. Ilk batch mevcut parent stagger pattern'i ile animasyonlanir — iki sistem catismaz.
+- localStorage islemleri senkron — kucuk veri seti (ID array) icin sorun teskil etmez (500 favori ~14KB, limit gereksiz)
+
+### Erisebilirlik
+
+- Tum animasyonlar `prefers-reduced-motion: reduce` medya sorgusunu saygiyla karsilar. Motion kutuphanesinin `useReducedMotion()` hook'u kullanilir.
+- Reduced motion aktifken: spring animasyonlar yerine anlik gecis, glow pulse'lar devre disi, stagger gecikmeleri sifirlanir, parcacik efektleri atlanir. Statik glow shadow'lar korunur (bunlar animasyon degil, stil).
+- Favori butonu icin `aria-label="Favorilere ekle"` / `aria-label="Favorilerden cikar"` ve `aria-pressed` durumu eklenir.
+
+### Autocomplete Animasyonlari Kapsami
+
+Section 3.3'teki animasyonlar yalnizca uygulama icerisinde olusturulan custom dropdown icin gecerlidir (son aramalar ve adres onerileri). Google Places Autocomplete harici widget kullanilmiyor — tum oneri listeleri kendi `LocationSearch` component'i tarafindan render edilir.
+
+### PlaceCard Props Degisikligi
+
+`PlaceCard` component'ine eklenen yeni prop'lar:
+
+```typescript
+interface PlaceCardProps {
+  // ... mevcut prop'lar
+  isFavorite: boolean
+  onToggleFavorite: (placeId: string) => void
+  categoryColor: string  // oklch renk degeri
+}
+```
+
+Ayni prop'lar `PlaceListItem` icin de gecerlidir.
