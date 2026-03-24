@@ -134,11 +134,9 @@
   html {
     @apply font-sans overflow-x-hidden;
     overscroll-behavior-y: contain;
-    transition: background-color 0.3s ease, color 0.3s ease;
     }
   body {
     @apply bg-background text-foreground overflow-x-hidden;
-    transition: background-color 0.3s ease, color 0.3s ease;
     }
   .glow-sm { box-shadow: 0 0 8px var(--glow-color, var(--primary)); }
   .glow-md { box-shadow: 0 0 15px var(--glow-color, var(--primary)); }
