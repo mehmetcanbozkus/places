@@ -329,6 +329,7 @@ function PlacesExplorerInner() {
     setDetailPlace(place)
     setDetailOpen(true)
     setDetailLoading(true)
+    setSearchParams({ place: place.id }, { history: "push" })
     try {
       const response = await fetch(`/api/places/${place.id}`)
       if (response.ok) {
@@ -340,7 +341,47 @@ function PlacesExplorerInner() {
     } finally {
       setDetailLoading(false)
     }
-  }, [])
+  }, [setSearchParams])
+
+  const closeDetail = useCallback(() => {
+    setDetailOpen(false)
+    setDetailPlace(null)
+    setSearchParams({ place: null }, { history: "push" })
+  }, [setSearchParams])
+
+  const handleDetailOpenChange = useCallback((open: boolean) => {
+    if (!open) {
+      closeDetail()
+    }
+  }, [closeDetail])
+
+  // Restore place detail from URL param (cold start or browser back)
+  useEffect(() => {
+    const placeId = searchParams.place
+    if (placeId && !detailOpen) {
+      setDetailOpen(true)
+      setDetailLoading(true)
+      fetch(`/api/places/${placeId}`)
+        .then((res) => {
+          if (!res.ok) throw new Error("Not found")
+          return res.json()
+        })
+        .then((data) => {
+          setDetailPlace(data)
+        })
+        .catch(() => {
+          toast.error("Mekan bulunamadı")
+          setSearchParams({ place: null })
+          setDetailOpen(false)
+        })
+        .finally(() => {
+          setDetailLoading(false)
+        })
+    } else if (!placeId && detailOpen) {
+      setDetailOpen(false)
+      setDetailPlace(null)
+    }
+  }, [searchParams.place]) // eslint-disable-line -- intentionally minimal deps
 
   // Filter and sort
   const filteredPlaces = useMemo(() => {
@@ -947,7 +988,7 @@ function PlacesExplorerInner() {
         <PlaceDetailSheet
           place={detailPlace}
           open={detailOpen}
-          onOpenChange={setDetailOpen}
+          onOpenChange={handleDetailOpenChange}
           loading={detailLoading}
           isFavorite={detailPlace ? isFavorite(detailPlace.id) : false}
           onToggleFavorite={toggleFavorite}
