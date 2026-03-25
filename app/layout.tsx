@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono, Noto_Sans } from "next/font/google"
+import { NuqsAdapter } from "nuqs/adapters/next/app"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -29,8 +30,10 @@ export default function RootLayout({
       )}
     >
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
-        <Toaster position="bottom-center" />
+        <NuqsAdapter>
+          <ThemeProvider>{children}</ThemeProvider>
+          <Toaster position="bottom-center" />
+        </NuqsAdapter>
       </body>
     </html>
   )
