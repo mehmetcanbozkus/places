@@ -162,3 +162,15 @@
 ::view-transition-new(root) {
   z-index: 9999;
 }
+
+/* Performance: skip layout/paint for off-screen cards.
+   contain-intrinsic-size values are approximate — tune if layout jumps occur. */
+.place-card-item {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 320px;
+}
+
+.place-list-item {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 100px;
+}

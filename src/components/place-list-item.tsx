@@ -85,7 +85,7 @@ export function PlaceListItem({
       whileHover={{ x: 4 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
       onClick={onClick}
-      className="group flex cursor-pointer gap-3 rounded-xl border bg-card p-3 shadow-sm transition-shadow duration-200 hover:shadow-md"
+      className="place-list-item group flex cursor-pointer gap-3 rounded-xl border bg-card p-3 shadow-sm transition-shadow duration-200 hover:shadow-md"
       style={{
         borderLeftWidth: "3px",
         borderLeftColor: `var(--neon-${categoryColor.category})`,

@@ -97,7 +97,7 @@ export function PlaceCard({
       whileTap={{ scale: 0.98 }}
       transition={{ type: "spring", stiffness: 300, damping: 25 }}
       onClick={onClick}
-      className="group cursor-pointer overflow-hidden rounded-xl border bg-card shadow-sm transition-shadow duration-200 hover:shadow-lg"
+      className="place-card-item group cursor-pointer overflow-hidden rounded-xl border bg-card shadow-sm transition-shadow duration-200 hover:shadow-lg"
       style={{
         borderTopWidth: "3px",
         borderTopColor: `var(--neon-${categoryColor.category})`,
