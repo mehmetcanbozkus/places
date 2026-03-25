@@ -124,9 +124,13 @@ export function QuickFilters({
 }: QuickFiltersProps) {
   return (
     <div
-      className="scrollbar-hide flex gap-2 overflow-x-auto pb-1"
+      className="sticky top-[56px] z-30 bg-background/80 px-4 py-2 backdrop-blur-xl lg:px-6"
       style={{ scrollbarWidth: "none" }}
     >
+      <div
+        className="scrollbar-hide mx-auto flex max-w-7xl gap-2 overflow-x-auto"
+        style={{ scrollbarWidth: "none" }}
+      >
       {/* Favorites chip — separate from FilterState */}
       {favoritesCount > 0 && (
         <motion.div whileTap={{ scale: 0.95 }} className="shrink-0">
@@ -139,7 +143,10 @@ export function QuickFilters({
             }`}
             onClick={onToggleFavorites}
           >
-            <Heart className="h-3 w-3" fill={showFavoritesOnly ? "currentColor" : "none"} />
+            <Heart
+              className="h-3 w-3"
+              fill={showFavoritesOnly ? "currentColor" : "none"}
+            />
             Favoriler ({favoritesCount})
           </Badge>
         </motion.div>
@@ -149,7 +156,11 @@ export function QuickFilters({
         const active = chip.isActive(filters)
         const Icon = chip.icon
         return (
-          <motion.div key={chip.key} whileTap={{ scale: 0.95 }} className="shrink-0">
+          <motion.div
+            key={chip.key}
+            whileTap={{ scale: 0.95 }}
+            className="shrink-0"
+          >
             <Badge
               variant={active ? "default" : "outline"}
               className={`cursor-pointer gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors transition-shadow duration-200 ${
@@ -165,6 +176,7 @@ export function QuickFilters({
           </motion.div>
         )
       })}
+      </div>
     </div>
   )
 }

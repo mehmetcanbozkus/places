@@ -790,8 +790,21 @@ function PlacesExplorerInner() {
           </div>
         </header>
 
+        {/* Quick filters — sticky below header */}
+        {!loading && places.length > 0 && (
+          <QuickFilters
+            filters={filters}
+            onFiltersChange={setFilters}
+            showFavoritesOnly={showFavoritesOnly}
+            onToggleFavorites={() =>
+              setShowFavoritesOnly(!showFavoritesOnly)
+            }
+            favoritesCount={favoritesCount}
+          />
+        )}
+
         {/* Main layout */}
-        <div className="mx-auto flex w-full max-w-full flex-1 gap-0 overflow-hidden xl:max-w-7xl">
+        <div className="mx-auto flex w-full max-w-full flex-1 gap-0 overflow-x-clip xl:max-w-7xl">
           {/* Desktop sidebar */}
           <aside className="hidden w-72 shrink-0 border-r lg:block">
             <div className="sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto p-4">
@@ -813,21 +826,6 @@ function PlacesExplorerInner() {
 
           {/* Content */}
           <main className="min-w-0 flex-1 p-4 lg:p-6">
-            {/* Quick filters */}
-            {!loading && places.length > 0 && (
-              <div className="mb-4">
-                <QuickFilters
-                  filters={filters}
-                  onFiltersChange={setFilters}
-                  showFavoritesOnly={showFavoritesOnly}
-                  onToggleFavorites={() =>
-                    setShowFavoritesOnly(!showFavoritesOnly)
-                  }
-                  favoritesCount={favoritesCount}
-                />
-              </div>
-            )}
-
             <AnimatePresence mode="wait">
               {loading ? (
                 <motion.div
