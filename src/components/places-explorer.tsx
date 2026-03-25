@@ -15,7 +15,11 @@ import { toast } from "sonner"
 import { motion, AnimatePresence, useReducedMotion } from "motion/react"
 import { PlaceCard } from "./place-card"
 import { PlaceListItem } from "./place-list-item"
-import { PlaceDetailSheet } from "./place-detail-sheet"
+import dynamic from "next/dynamic"
+
+const PlaceDetailSheet = dynamic(() =>
+  import("./place-detail-sheet").then((m) => m.PlaceDetailSheet)
+)
 import { FiltersPanel } from "./filters-panel"
 import { LocationSearch } from "./location-search"
 import { QuickFilters } from "./quick-filters"
