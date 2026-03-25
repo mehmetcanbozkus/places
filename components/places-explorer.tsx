@@ -43,6 +43,8 @@ import {
   RefreshCw,
   UtensilsCrossed,
   SearchX,
+  Search,
+  ChevronLeft,
   LocateFixed,
   LayoutGrid,
   List,
@@ -573,189 +575,219 @@ function PlacesExplorerInner() {
           }}
         >
           <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4">
-            <div className="flex shrink-0 items-center gap-2">
-              <UtensilsCrossed className="h-5 w-5 text-primary" />
-              <h1 className="hidden text-lg font-bold tracking-tight sm:block">
-                Nerede Yesem?
-              </h1>
-            </div>
-
-            <div className="flex min-w-0 flex-1 justify-center">
-              {searchComponent}
-            </div>
-
-            <div className="flex shrink-0 items-center gap-1.5">
-              {/* View toggle */}
-              <div className="hidden items-center rounded-lg border p-0.5 sm:flex">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={viewMode === "grid" ? "secondary" : "ghost"}
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => setViewMode("grid")}
-                    >
-                      <LayoutGrid className="h-3.5 w-3.5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Kart Görünümü</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={viewMode === "list" ? "secondary" : "ghost"}
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => setViewMode("list")}
-                    >
-                      <List className="h-3.5 w-3.5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Liste Görünümü</TooltipContent>
-                </Tooltip>
-              </div>
-
-              {/* Theme toggle */}
-              <Button
-                ref={themeToggleRef}
-                variant="ghost"
-                size="icon"
-                className="relative h-8 w-8"
-                onClick={toggleTheme}
-                title={resolvedTheme === "dark" ? "Açık tema" : "Koyu tema"}
-              >
-                <AnimatePresence mode="wait" initial={false}>
-                  {resolvedTheme === "dark" ? (
-                    <motion.span
-                      key="moon"
-                      initial={{ rotate: -90, scale: 0, opacity: 0 }}
-                      animate={{ rotate: 0, scale: 1, opacity: 1 }}
-                      exit={{ rotate: 90, scale: 0, opacity: 0 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 250,
-                        damping: 20,
-                        duration: 0.3,
-                      }}
-                      className="absolute inset-0 flex items-center justify-center"
-                    >
-                      <Moon className="h-4 w-4" />
-                    </motion.span>
-                  ) : (
-                    <motion.span
-                      key="sun"
-                      initial={{ rotate: 90, scale: 0, opacity: 0 }}
-                      animate={{ rotate: 0, scale: 1, opacity: 1 }}
-                      exit={{ rotate: -90, scale: 0, opacity: 0 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 250,
-                        damping: 20,
-                        duration: 0.3,
-                      }}
-                      className="absolute inset-0 flex items-center justify-center"
-                    >
-                      <Sun className="h-4 w-4" />
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </Button>
-
-              {/* Refresh */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={fetchPlaces}
-                disabled={loading}
-                className="h-8 w-8"
-                title="Yenile"
-              >
-                <RefreshCw
-                  className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
-                />
-              </Button>
-
-              {/* Favorites counter */}
-              {favoritesCount > 0 && (
-                <motion.button
-                  onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-                  whileTap={{ scale: 0.9 }}
-                  className={`relative flex h-8 w-8 items-center justify-center rounded-lg transition-colors duration-200 ${
-                    showFavoritesOnly
-                      ? "bg-[var(--neon-favorite)] text-white"
-                      : "hover:bg-muted"
-                  }`}
-                  title="Favoriler"
+            {mobileSearchOpen ? (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 shrink-0 lg:hidden"
+                  onClick={() => setMobileSearchOpen(false)}
                 >
-                  <Heart
-                    className="h-4 w-4"
-                    fill={showFavoritesOnly ? "currentColor" : "none"}
-                  />
-                  <motion.span
-                    key={favoritesCount}
-                    initial={{ scale: 1.5 }}
-                    animate={{ scale: 1 }}
-                    className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-pink-500 px-1 text-[10px] font-bold text-white"
-                  >
-                    {favoritesCount}
-                  </motion.span>
-                </motion.button>
-              )}
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <div className="min-w-0 flex-1">{searchComponent}</div>
+              </>
+            ) : (
+              <>
+                {/* Logo */}
+                <div className="flex shrink-0 items-center gap-2">
+                  <UtensilsCrossed className="h-5 w-5 text-primary" />
+                  <h1 className="hidden text-lg font-bold tracking-tight sm:block">
+                    Nerede Yesem?
+                  </h1>
+                </div>
 
-              {/* Mobile filter toggle */}
-              <Sheet
-                open={mobileFiltersOpen}
-                onOpenChange={setMobileFiltersOpen}
-              >
-                <SheetTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="relative lg:hidden"
-                  >
-                    <SlidersHorizontal className="mr-1.5 h-4 w-4" />
-                    <span className="xs:inline hidden">Filtre</span>
-                    {activeFilterCount > 0 && (
-                      <Badge className="ml-1.5 h-5 min-w-5 justify-center rounded-full px-1 text-[10px]">
-                        {activeFilterCount}
-                      </Badge>
-                    )}
-                  </Button>
-                </SheetTrigger>
-                <SheetContent
-                  side="bottom"
-                  className="max-h-[85vh] overflow-y-auto rounded-t-2xl px-6"
-                >
-                  <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
-                  <SheetHeader className="p-0 pb-1">
-                    <SheetTitle className="text-base">Filtreler</SheetTitle>
-                  </SheetHeader>
-                  <div className="mt-3 pb-6">
-                    <FiltersPanel
-                      filters={filters}
-                      onFiltersChange={setFilters}
-                      sort={sort}
-                      onSortChange={setSort}
-                      radius={radius}
-                      onRadiusChange={setRadius}
-                      totalCount={places.length}
-                      filteredCount={filteredPlaces.length}
-                    />
+                {/* Location badge */}
+                {locationLabel && (
+                  <div className="flex shrink-0 items-center gap-1.5 rounded-full border bg-muted/50 px-3 py-1 text-xs text-muted-foreground">
+                    <MapPin className="h-3 w-3 shrink-0" />
+                    <span className="max-w-[120px] truncate sm:max-w-[200px]">
+                      {locationLabel}
+                    </span>
                   </div>
-                </SheetContent>
-              </Sheet>
-            </div>
-          </div>
+                )}
 
-          {/* Location label */}
-          {locationLabel && (
-            <div className="mx-auto flex max-w-7xl items-center gap-2 border-t px-4 py-1.5">
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <MapPin className="h-3 w-3" />
-                <span className="truncate">{locationLabel}</span>
-              </div>
-            </div>
-          )}
+                {/* Desktop search — hidden on mobile */}
+                <div className="hidden min-w-0 flex-1 lg:flex lg:justify-center">
+                  {searchComponent}
+                </div>
+
+                {/* Action buttons */}
+                <div className="ml-auto flex shrink-0 items-center gap-1.5">
+                  {/* Mobile search trigger */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 lg:hidden"
+                    onClick={() => setMobileSearchOpen(true)}
+                    title="Konum ara"
+                  >
+                    <Search className="h-4 w-4" />
+                  </Button>
+
+                  {/* View toggle */}
+                  <div className="hidden items-center rounded-lg border p-0.5 sm:flex">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant={viewMode === "grid" ? "secondary" : "ghost"}
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => setViewMode("grid")}
+                        >
+                          <LayoutGrid className="h-3.5 w-3.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Kart Görünümü</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant={viewMode === "list" ? "secondary" : "ghost"}
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => setViewMode("list")}
+                        >
+                          <List className="h-3.5 w-3.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Liste Görünümü</TooltipContent>
+                    </Tooltip>
+                  </div>
+
+                  {/* Theme toggle */}
+                  <Button
+                    ref={themeToggleRef}
+                    variant="ghost"
+                    size="icon"
+                    className="relative h-8 w-8"
+                    onClick={toggleTheme}
+                    title={resolvedTheme === "dark" ? "Açık tema" : "Koyu tema"}
+                  >
+                    <AnimatePresence mode="wait" initial={false}>
+                      {resolvedTheme === "dark" ? (
+                        <motion.span
+                          key="moon"
+                          initial={{ rotate: -90, scale: 0, opacity: 0 }}
+                          animate={{ rotate: 0, scale: 1, opacity: 1 }}
+                          exit={{ rotate: 90, scale: 0, opacity: 0 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 250,
+                            damping: 20,
+                            duration: 0.3,
+                          }}
+                          className="absolute inset-0 flex items-center justify-center"
+                        >
+                          <Moon className="h-4 w-4" />
+                        </motion.span>
+                      ) : (
+                        <motion.span
+                          key="sun"
+                          initial={{ rotate: 90, scale: 0, opacity: 0 }}
+                          animate={{ rotate: 0, scale: 1, opacity: 1 }}
+                          exit={{ rotate: -90, scale: 0, opacity: 0 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 250,
+                            damping: 20,
+                            duration: 0.3,
+                          }}
+                          className="absolute inset-0 flex items-center justify-center"
+                        >
+                          <Sun className="h-4 w-4" />
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </Button>
+
+                  {/* Refresh */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={fetchPlaces}
+                    disabled={loading}
+                    className="h-8 w-8"
+                    title="Yenile"
+                  >
+                    <RefreshCw
+                      className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
+                    />
+                  </Button>
+
+                  {/* Favorites counter */}
+                  {favoritesCount > 0 && (
+                    <motion.button
+                      onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                      whileTap={{ scale: 0.9 }}
+                      className={`relative flex h-8 w-8 items-center justify-center rounded-lg transition-colors duration-200 ${
+                        showFavoritesOnly
+                          ? "bg-[var(--neon-favorite)] text-white"
+                          : "hover:bg-muted"
+                      }`}
+                      title="Favoriler"
+                    >
+                      <Heart
+                        className="h-4 w-4"
+                        fill={showFavoritesOnly ? "currentColor" : "none"}
+                      />
+                      <motion.span
+                        key={favoritesCount}
+                        initial={{ scale: 1.5 }}
+                        animate={{ scale: 1 }}
+                        className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-pink-500 px-1 text-[10px] font-bold text-white"
+                      >
+                        {favoritesCount}
+                      </motion.span>
+                    </motion.button>
+                  )}
+
+                  {/* Mobile filter toggle */}
+                  <Sheet
+                    open={mobileFiltersOpen}
+                    onOpenChange={setMobileFiltersOpen}
+                  >
+                    <SheetTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="relative lg:hidden"
+                      >
+                        <SlidersHorizontal className="mr-1.5 h-4 w-4" />
+                        <span className="xs:inline hidden">Filtre</span>
+                        {activeFilterCount > 0 && (
+                          <Badge className="ml-1.5 h-5 min-w-5 justify-center rounded-full px-1 text-[10px]">
+                            {activeFilterCount}
+                          </Badge>
+                        )}
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent
+                      side="bottom"
+                      className="max-h-[85vh] overflow-y-auto rounded-t-2xl px-6"
+                    >
+                      <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
+                      <SheetHeader className="p-0 pb-1">
+                        <SheetTitle className="text-base">Filtreler</SheetTitle>
+                      </SheetHeader>
+                      <div className="mt-3 pb-6">
+                        <FiltersPanel
+                          filters={filters}
+                          onFiltersChange={setFilters}
+                          sort={sort}
+                          onSortChange={setSort}
+                          radius={radius}
+                          onRadiusChange={setRadius}
+                          totalCount={places.length}
+                          filteredCount={filteredPlaces.length}
+                        />
+                      </div>
+                    </SheetContent>
+                  </Sheet>
+                </div>
+              </>
+            )}
+          </div>
         </header>
 
         {/* Main layout */}
