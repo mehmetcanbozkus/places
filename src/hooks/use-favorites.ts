@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useSyncExternalStore } from "react"
+import { useCallback, useMemo, useSyncExternalStore } from "react"
 
 const STORAGE_KEY = "favorites"
 const EMPTY: string[] = []
@@ -46,6 +46,8 @@ export function useFavorites() {
     getServerSnapshot
   )
 
+  const favoritesSet = useMemo(() => new Set(favorites), [favorites])
+
   const toggle = useCallback((placeId: string) => {
     const current = getSnapshot()
     const next = current.includes(placeId)
@@ -60,8 +62,8 @@ export function useFavorites() {
   }, [])
 
   const isFavorite = useCallback(
-    (placeId: string) => favorites.includes(placeId),
-    [favorites]
+    (placeId: string) => favoritesSet.has(placeId),
+    [favoritesSet]
   )
 
   return { favorites, toggle, isFavorite, count: favorites.length }
