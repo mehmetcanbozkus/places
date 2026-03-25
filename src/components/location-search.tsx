@@ -62,7 +62,6 @@ function getPlaceIcon(types?: string[]) {
   return MapPin
 }
 
-
 export function LocationSearch({
   onSelect,
   onUseMyLocation,
@@ -337,7 +336,9 @@ export function LocationSearch({
 
               {suggestions.map((suggestion, i) => {
                 const Icon = getPlaceIcon(suggestion.types)
-                const dist = suggestion.distanceMeters ? formatDistance(suggestion.distanceMeters) : null
+                const dist = suggestion.distanceMeters
+                  ? formatDistance(suggestion.distanceMeters)
+                  : null
                 const isActive = selectedIndex === i
 
                 return (

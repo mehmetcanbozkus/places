@@ -3,10 +3,7 @@ import { NextResponse } from "next/server"
 export const GOOGLE_API_KEY = process.env.GOOGLE_PLACES_API_KEY
 
 export function apiKeyError() {
-  return NextResponse.json(
-    { error: "API key not configured" },
-    { status: 500 }
-  )
+  return NextResponse.json({ error: "API key not configured" }, { status: 500 })
 }
 
 // Unprefixed field names — shared between nearby (needs `places.` prefix) and detail routes
@@ -71,4 +68,6 @@ export const DETAIL_ONLY_FIELDS = [
 export const NEARBY_FIELD_MASK = BASE_FIELDS.map((f) => `places.${f}`).join(",")
 
 // For the [id] route: all fields unprefixed
-export const DETAIL_FIELD_MASK = [...BASE_FIELDS, ...DETAIL_ONLY_FIELDS].join(",")
+export const DETAIL_FIELD_MASK = [...BASE_FIELDS, ...DETAIL_ONLY_FIELDS].join(
+  ","
+)

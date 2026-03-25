@@ -1,98 +1,53 @@
 "use client"
 
-import {
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-  useRef,
-  Suspense,
-} from "react"
-import { flushSync } from "react-dom"
+import { Suspense, useCallback, useMemo, useState } from "react"
+import dynamic from "next/dynamic"
 import { useQueryStates } from "nuqs"
-import { searchParamsParsers } from "@/lib/search-params"
-import { toast } from "sonner"
-import { motion, AnimatePresence, useReducedMotion } from "motion/react"
+import { AnimatePresence, motion, useReducedMotion } from "motion/react"
+import {
+  FilterEmptyState,
+  FavoritesEmptyState,
+  NoResultsEmptyState,
+} from "./places-empty-state"
+import { FiltersPanel } from "./filters-panel"
+import { LocationSearch } from "./location-search"
 import { PlaceCard } from "./place-card"
 import { PlaceListItem } from "./place-list-item"
-import dynamic from "next/dynamic"
+import { PlacesHeader } from "./places-header"
+import { QuickFilters } from "./quick-filters"
+import { ScrollToTop } from "./scroll-to-top"
+import { Input } from "@/components/ui/input"
+import { Skeleton } from "@/components/ui/skeleton"
+import { TooltipProvider } from "@/components/ui/tooltip"
+import { DEFAULT_FILTERS } from "@/lib/constants"
+import { haversineDistance } from "@/lib/geo"
+import { countActiveFilters } from "@/lib/place-utils"
+import { searchParamsParsers } from "@/lib/search-params"
+import { useDebouncedValue } from "@/hooks/use-debounced-value"
+import { useFavorites } from "@/hooks/use-favorites"
+import { useLocationState } from "@/hooks/use-location-state"
+import { usePlaceDetail } from "@/hooks/use-place-detail"
+import { usePlaces } from "@/hooks/use-places"
+import { usePullToRefresh } from "@/hooks/use-pull-to-refresh"
+import { useRecentSearches } from "@/hooks/use-recent-searches"
+import type { FilterState, PriceLevel, SortOption } from "@/lib/types"
+import {
+  Loader2,
+  LocateFixed,
+  MapPin,
+  RefreshCw,
+  Search,
+  X,
+} from "lucide-react"
 
 const PlaceDetailSheet = dynamic(() =>
   import("./place-detail-sheet").then((m) => m.PlaceDetailSheet)
 )
-import { FiltersPanel } from "./filters-panel"
-import { LocationSearch } from "./location-search"
-import { QuickFilters } from "./quick-filters"
-import { ScrollToTop } from "./scroll-to-top"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Badge } from "@/components/ui/badge"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet"
-import {
-  MapPin,
-  Loader2,
-  SlidersHorizontal,
-  RefreshCw,
-  UtensilsCrossed,
-  SearchX,
-  Search,
-  ChevronLeft,
-  LocateFixed,
-  LayoutGrid,
-  List,
-  Heart,
-  Sun,
-  Moon,
-  X,
-} from "lucide-react"
-import type { Place, FilterState, SortOption, PriceLevel } from "@/lib/types"
-import { DEFAULT_FILTERS } from "@/lib/constants"
-import { haversineDistance } from "@/lib/geo"
-import { countActiveFilters } from "@/lib/place-utils"
-import { useRecentSearches } from "@/hooks/use-recent-searches"
-import { usePullToRefresh } from "@/hooks/use-pull-to-refresh"
-import { useFavorites } from "@/hooks/use-favorites"
-import { useDebouncedValue } from "@/hooks/use-debounced-value"
-import { useTheme } from "next-themes"
 
-type LocationSource = "gps" | "search"
 type ViewMode = "grid" | "list"
 
 function PlacesExplorerInner() {
   const [searchParams, setSearchParams] = useQueryStates(searchParamsParsers)
-
-  // Derive location from URL params
-  const urlHasLocation = searchParams.lat !== null && searchParams.lng !== null
-
-  // Local state that is NOT in URL
-  const [gpsLocation, setGpsLocation] = useState<{
-    lat: number
-    lng: number
-  } | null>(null)
-  const [locationSource, setLocationSource] = useState<LocationSource>(
-    urlHasLocation ? "search" : "gps"
-  )
-  const [locationStatus, setLocationStatus] = useState<
-    "pending" | "granted" | "denied" | "error"
-  >(urlHasLocation ? "granted" : "pending")
-  const [places, setPlaces] = useState<Place[]>([])
-  const [loading, setLoading] = useState(false)
-  const [detailPlace, setDetailPlace] = useState<Place | null>(null)
-  const [detailOpen, setDetailOpen] = useState(false)
-  const [detailLoading, setDetailLoading] = useState(false)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>("grid")
@@ -113,75 +68,20 @@ function PlacesExplorerInner() {
     isFavorite,
     count: favoritesCount,
   } = useFavorites()
+
   const reducedMotion = useReducedMotion()
-  const { resolvedTheme, setTheme } = useTheme()
-  const themeToggleRef = useRef<HTMLButtonElement>(null)
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
 
-  const toggleTheme = useCallback(() => {
-    const newTheme = resolvedTheme === "dark" ? "light" : "dark"
+  const {
+    gpsLocation,
+    location,
+    locationLabel,
+    locationSource,
+    locationStatus,
+    setLocationSource,
+    setLocationStatus,
+    useMyLocation: switchToGpsLocation,
+  } = useLocationState({ searchParams, setSearchParams })
 
-    // Fallback for browsers without View Transitions API
-    if (
-      !document.startViewTransition ||
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ) {
-      setTheme(newTheme)
-      return
-    }
-
-    const transition = document.startViewTransition(() => {
-      flushSync(() => {
-        setTheme(newTheme)
-      })
-    })
-
-    // Circular reveal from button position
-    transition.ready.then(() => {
-      const button = themeToggleRef.current
-      if (!button) return
-
-      const { top, left, width, height } = button.getBoundingClientRect()
-      const x = left + width / 2
-      const y = top + height / 2
-      const maxRadius = Math.hypot(
-        Math.max(x, window.innerWidth - x),
-        Math.max(y, window.innerHeight - y)
-      )
-
-      document.documentElement.animate(
-        {
-          clipPath: [
-            `circle(0px at ${x}px ${y}px)`,
-            `circle(${maxRadius}px at ${x}px ${y}px)`,
-          ],
-        },
-        {
-          duration: 500,
-          easing: "ease-in-out",
-          pseudoElement: "::view-transition-new(root)",
-        }
-      )
-    })
-  }, [resolvedTheme, setTheme])
-
-  // Derive current location (from URL for search, from GPS state for GPS)
-  const location = useMemo(() => {
-    if (
-      locationSource === "search" &&
-      searchParams.lat !== null &&
-      searchParams.lng !== null
-    ) {
-      return { lat: searchParams.lat, lng: searchParams.lng }
-    }
-    return gpsLocation
-  }, [locationSource, searchParams.lat, searchParams.lng, gpsLocation])
-
-  const locationLabel =
-    searchParams.q ?? (locationSource === "gps" ? "Mevcut Konum" : "")
-
-  // Derive FilterState from URL params
   const filters: FilterState = useMemo(
     () => ({
       minRating: searchParams.mr,
@@ -209,7 +109,6 @@ function PlacesExplorerInner() {
   const sort = searchParams.s
   const radius = searchParams.r
 
-  // Setter helpers that write to nuqs
   const setFilters = useCallback(
     (newFilters: FilterState) => {
       setSearchParams({
@@ -250,74 +149,31 @@ function PlacesExplorerInner() {
     [setSearchParams]
   )
 
-  // Request geolocation (skip if URL already had location)
-  useEffect(() => {
-    if (urlHasLocation) return
-    if (!("geolocation" in navigator)) {
-      setLocationStatus("error")
-      return
-    }
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const loc = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        }
-        setGpsLocation(loc)
-        if (!urlHasLocation) {
-          setLocationSource("gps")
-        }
-        setLocationStatus("granted")
-      },
-      (error) => {
-        if (!urlHasLocation) {
-          setLocationStatus(error.code === 1 ? "denied" : "error")
-        }
-      },
-      { enableHighAccuracy: true, timeout: 15000 }
-    )
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  const { places, loading, fetchPlaces } = usePlaces(location, radius)
+  const {
+    detailPlace,
+    detailOpen,
+    detailLoading,
+    handleDetailOpenChange,
+    openDetail,
+  } = usePlaceDetail(searchParams, setSearchParams)
 
-  // Fetch nearby places
-  const fetchPlaces = useCallback(async () => {
-    if (!location) return
-    setLoading(true)
-    try {
-      const response = await fetch("/api/places/nearby", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          latitude: location.lat,
-          longitude: location.lng,
-          radius,
-        }),
-      })
-      const data = await response.json()
-      setPlaces(data.places || [])
-    } catch {
-      console.error("Failed to fetch places")
-    } finally {
-      setLoading(false)
-    }
-  }, [location, radius])
-
-  useEffect(() => {
-    fetchPlaces()
-  }, [fetchPlaces])
-
-  // Pull to refresh
   const { pullDistance, isRefreshing } = usePullToRefresh({
     onRefresh: fetchPlaces,
   })
 
-  // Handle autocomplete selection
+  const handleUseMyLocation = useCallback(() => {
+    switchToGpsLocation()
+    setMobileSearchOpen(false)
+  }, [switchToGpsLocation])
+
   const handlePlaceSelect = useCallback(
     async (placeId: string, label: string) => {
       addSearch(placeId, label)
       try {
         const response = await fetch(`/api/places/${placeId}`)
         if (!response.ok) return
+
         const data = await response.json()
         if (data.location) {
           setSearchParams({
@@ -335,10 +191,15 @@ function PlacesExplorerInner() {
         // Silently fail
       }
     },
-    [locationStatus, addSearch, setSearchParams]
+    [
+      addSearch,
+      locationStatus,
+      setLocationSource,
+      setLocationStatus,
+      setSearchParams,
+    ]
   )
 
-  // Handle recent search selection
   const handleRecentSelect = useCallback(
     (placeId: string, label: string) => {
       handlePlaceSelect(placeId, label)
@@ -346,121 +207,50 @@ function PlacesExplorerInner() {
     [handlePlaceSelect]
   )
 
-  // Switch back to GPS location
-  const useMyLocation = useCallback(() => {
-    if (gpsLocation) {
-      setSearchParams({ lat: null, lng: null, q: null })
-      setLocationSource("gps")
-      setMobileSearchOpen(false)
-    }
-  }, [gpsLocation, setSearchParams])
-
-  // Fetch place details
-  const openDetail = useCallback(
-    async (place: Place) => {
-      setDetailPlace(place)
-      setDetailOpen(true)
-      setDetailLoading(true)
-      setSearchParams({ place: place.id }, { history: "push" })
-      try {
-        const response = await fetch(`/api/places/${place.id}`)
-        if (response.ok) {
-          const data = await response.json()
-          setDetailPlace(data)
-        }
-      } catch {
-        // Keep basic place info as fallback
-      } finally {
-        setDetailLoading(false)
-      }
-    },
-    [setSearchParams]
-  )
-
-  const closeDetail = useCallback(() => {
-    setDetailOpen(false)
-    setDetailPlace(null)
-    setSearchParams({ place: null }, { history: "push" })
-  }, [setSearchParams])
-
-  const handleDetailOpenChange = useCallback(
-    (open: boolean) => {
-      if (!open) {
-        closeDetail()
-      }
-    },
-    [closeDetail]
-  )
-
-  // Restore place detail from URL param (cold start or browser back)
-  useEffect(() => {
-    const placeId = searchParams.place
-    if (placeId && !detailOpen) {
-      setDetailOpen(true)
-      setDetailLoading(true)
-      fetch(`/api/places/${placeId}`)
-        .then((res) => {
-          if (!res.ok) throw new Error("Not found")
-          return res.json()
-        })
-        .then((data) => {
-          setDetailPlace(data)
-        })
-        .catch(() => {
-          toast.error("Mekan bulunamadı")
-          setSearchParams({ place: null })
-          setDetailOpen(false)
-        })
-        .finally(() => {
-          setDetailLoading(false)
-        })
-    } else if (!placeId && detailOpen) {
-      setDetailOpen(false)
-      setDetailPlace(null)
-    }
-  }, [searchParams.place]) // eslint-disable-line -- intentionally minimal deps
-
-  // Filter and sort
   const filteredPlaces = useMemo(() => {
     const searchLower = debouncedPlaceSearch.trim().toLowerCase()
     const result = places.filter((place) => {
-      // Text search filter — always applies
       if (searchLower) {
         const name = place.displayName.text.toLowerCase()
         const type = place.primaryTypeDisplayName?.text?.toLowerCase() || ""
         const address = place.shortFormattedAddress?.toLowerCase() || ""
+
         if (
           !name.includes(searchLower) &&
           !type.includes(searchLower) &&
           !address.includes(searchLower)
-        )
+        ) {
           return false
+        }
       }
 
-      // When showing favorites only, skip ALL other filters — show every favorited place
       if (showFavoritesOnly) {
         return favorites.includes(place.id)
       }
 
-      if (filters.minRating > 0 && (place.rating || 0) < filters.minRating)
+      if (filters.minRating > 0 && (place.rating || 0) < filters.minRating) {
         return false
+      }
       if (
         filters.minReviewCount > 0 &&
         (place.userRatingCount || 0) < filters.minReviewCount
-      )
+      ) {
         return false
+      }
       if (
         filters.priceLevels.length > 0 &&
         place.priceLevel &&
         !filters.priceLevels.includes(place.priceLevel)
-      )
+      ) {
         return false
+      }
       if (filters.openNow && !place.currentOpeningHours?.openNow) return false
       if (filters.delivery && !place.delivery) return false
       if (filters.dineIn && !place.dineIn) return false
       if (filters.takeout && !place.takeout) return false
-      if (filters.servesVegetarianFood && !place.servesVegetarianFood)
+      if (filters.servesVegetarianFood && !place.servesVegetarianFood) {
         return false
+      }
       if (filters.outdoorSeating && !place.outdoorSeating) return false
       if (filters.reservable && !place.reservable) return false
       if (filters.goodForGroups && !place.goodForGroups) return false
@@ -470,12 +260,13 @@ function PlacesExplorerInner() {
       if (filters.servesLunch && !place.servesLunch) return false
       if (filters.servesDinner && !place.servesDinner) return false
       if (filters.servesBrunch && !place.servesBrunch) return false
-      if (filters.servesAlcohol && !place.servesBeer && !place.servesWine)
+      if (filters.servesAlcohol && !place.servesBeer && !place.servesWine) {
         return false
+      }
+
       return true
     })
 
-    // Pre-compute distances if sorting by distance
     if (sort === "distance" && location) {
       const distanceMap = new Map<string, number>()
       for (const place of result) {
@@ -505,22 +296,21 @@ function PlacesExplorerInner() {
 
     return result
   }, [
-    places,
-    filters,
-    sort,
-    location,
-    showFavoritesOnly,
-    favorites,
     debouncedPlaceSearch,
+    favorites,
+    filters,
+    location,
+    places,
+    showFavoritesOnly,
+    sort,
   ])
 
   const activeFilterCount = countActiveFilters(filters)
 
-  // Shared search component
   const searchComponent = (
     <LocationSearch
       onSelect={handlePlaceSelect}
-      onUseMyLocation={useMyLocation}
+      onUseMyLocation={handleUseMyLocation}
       hasGpsLocation={!!gpsLocation}
       isSearchLocation={locationSource === "search"}
       userLatitude={gpsLocation?.lat}
@@ -532,7 +322,6 @@ function PlacesExplorerInner() {
     />
   )
 
-  // Location pending state
   if (locationStatus === "pending") {
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
@@ -564,7 +353,6 @@ function PlacesExplorerInner() {
     )
   }
 
-  // Location denied/error
   if (
     (locationStatus === "denied" || locationStatus === "error") &&
     !location
@@ -592,7 +380,6 @@ function PlacesExplorerInner() {
   return (
     <TooltipProvider delayDuration={400}>
       <div className="flex min-h-screen flex-col overflow-x-clip">
-        {/* Pull to refresh indicator */}
         <AnimatePresence>
           {(pullDistance > 0 || isRefreshing) && (
             <motion.div
@@ -623,251 +410,37 @@ function PlacesExplorerInner() {
           )}
         </AnimatePresence>
 
-        {/* Header */}
-        <header
-          className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl"
-          style={{
-            borderBottom: "1px solid transparent",
-            borderImage:
-              "linear-gradient(to right, var(--primary), var(--secondary)) 1",
-          }}
-        >
-          <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4">
-            {mobileSearchOpen ? (
-              <>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 shrink-0 lg:hidden"
-                  onClick={() => setMobileSearchOpen(false)}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <div className="min-w-0 flex-1">{searchComponent}</div>
-              </>
-            ) : (
-              <>
-                {/* Logo */}
-                <div className="flex shrink-0 items-center gap-2">
-                  <UtensilsCrossed className="h-5 w-5 text-primary" />
-                  <h1 className="hidden text-lg font-bold tracking-tight sm:block">
-                    Nerede Yesem?
-                  </h1>
-                </div>
+        <PlacesHeader
+          activeFilterCount={activeFilterCount}
+          canUseMyLocation={locationSource === "search" && !!gpsLocation}
+          filteredCount={filteredPlaces.length}
+          filters={filters}
+          favoritesCount={favoritesCount}
+          locationLabel={locationLabel}
+          mobileFiltersOpen={mobileFiltersOpen}
+          mobileSearchOpen={mobileSearchOpen}
+          onFiltersChange={setFilters}
+          onMobileFiltersOpenChange={setMobileFiltersOpen}
+          onMobileSearchOpenChange={setMobileSearchOpen}
+          onRadiusChange={setRadius}
+          onSortChange={setSort}
+          onToggleFavorites={() => setShowFavoritesOnly((value) => !value)}
+          onUseMyLocation={handleUseMyLocation}
+          onViewModeChange={setViewMode}
+          radius={radius}
+          searchComponent={searchComponent}
+          showFavoritesOnly={showFavoritesOnly}
+          sort={sort}
+          totalCount={places.length}
+          viewMode={viewMode}
+        />
 
-                {/* Location badge */}
-                {locationLabel && (
-                  <button
-                    onClick={
-                      locationSource === "search" && gpsLocation
-                        ? useMyLocation
-                        : undefined
-                    }
-                    disabled={!(locationSource === "search" && gpsLocation)}
-                    className={`flex shrink-0 items-center gap-1.5 rounded-full border bg-muted/50 px-3 py-1 text-xs text-muted-foreground transition-colors ${
-                      locationSource === "search" && gpsLocation
-                        ? "cursor-pointer hover:border-primary/50 hover:bg-muted"
-                        : "cursor-default"
-                    }`}
-                    title={
-                      locationSource === "search" && gpsLocation
-                        ? "Mevcut konuma dön"
-                        : undefined
-                    }
-                  >
-                    {locationSource === "search" && gpsLocation ? (
-                      <LocateFixed className="h-3 w-3 shrink-0" />
-                    ) : (
-                      <MapPin className="h-3 w-3 shrink-0" />
-                    )}
-                    <span className="max-w-[120px] truncate sm:max-w-[200px]">
-                      {locationLabel}
-                    </span>
-                  </button>
-                )}
-
-                {/* Desktop search — hidden on mobile */}
-                <div className="hidden min-w-0 flex-1 lg:flex lg:justify-center">
-                  {searchComponent}
-                </div>
-
-                {/* Action buttons */}
-                <div className="ml-auto flex shrink-0 items-center gap-1.5">
-                  {/* Mobile search trigger */}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 lg:hidden"
-                    onClick={() => setMobileSearchOpen(true)}
-                    title="Konum ara"
-                  >
-                    <Search className="h-4 w-4" />
-                  </Button>
-
-                  {/* View toggle */}
-                  <div className="hidden items-center rounded-lg border p-0.5 sm:flex">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant={viewMode === "grid" ? "secondary" : "ghost"}
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={() => setViewMode("grid")}
-                        >
-                          <LayoutGrid className="h-3.5 w-3.5" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Kart Görünümü</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant={viewMode === "list" ? "secondary" : "ghost"}
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={() => setViewMode("list")}
-                        >
-                          <List className="h-3.5 w-3.5" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Liste Görünümü</TooltipContent>
-                    </Tooltip>
-                  </div>
-
-                  {/* Theme toggle */}
-                  <Button
-                    ref={themeToggleRef}
-                    variant="ghost"
-                    size="icon"
-                    className="relative h-8 w-8"
-                    onClick={toggleTheme}
-                    title={
-                      mounted
-                        ? resolvedTheme === "dark"
-                          ? "Açık tema"
-                          : "Koyu tema"
-                        : "Tema değiştir"
-                    }
-                  >
-                    <AnimatePresence mode="wait" initial={false}>
-                      {mounted && resolvedTheme === "dark" ? (
-                        <motion.span
-                          key="moon"
-                          initial={{ rotate: -90, scale: 0, opacity: 0 }}
-                          animate={{ rotate: 0, scale: 1, opacity: 1 }}
-                          exit={{ rotate: 90, scale: 0, opacity: 0 }}
-                          transition={{
-                            type: "spring",
-                            stiffness: 250,
-                            damping: 20,
-                            duration: 0.3,
-                          }}
-                          className="absolute inset-0 flex items-center justify-center"
-                        >
-                          <Moon className="h-4 w-4" />
-                        </motion.span>
-                      ) : (
-                        <motion.span
-                          key="sun"
-                          initial={{ rotate: 90, scale: 0, opacity: 0 }}
-                          animate={{ rotate: 0, scale: 1, opacity: 1 }}
-                          exit={{ rotate: -90, scale: 0, opacity: 0 }}
-                          transition={{
-                            type: "spring",
-                            stiffness: 250,
-                            damping: 20,
-                            duration: 0.3,
-                          }}
-                          className="absolute inset-0 flex items-center justify-center"
-                        >
-                          <Sun className="h-4 w-4" />
-                        </motion.span>
-                      )}
-                    </AnimatePresence>
-                  </Button>
-
-                  {/* Favorites counter */}
-                  {favoritesCount > 0 && (
-                    <motion.button
-                      onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-                      whileTap={{ scale: 0.9 }}
-                      className={`relative flex h-8 w-8 items-center justify-center rounded-lg transition-colors duration-200 ${
-                        showFavoritesOnly
-                          ? "bg-[var(--neon-favorite)] text-white"
-                          : "hover:bg-muted"
-                      }`}
-                      title="Favoriler"
-                    >
-                      <Heart
-                        className="h-4 w-4"
-                        fill={showFavoritesOnly ? "currentColor" : "none"}
-                      />
-                      <motion.span
-                        key={favoritesCount}
-                        initial={{ scale: 1.5 }}
-                        animate={{ scale: 1 }}
-                        className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-pink-500 px-1 text-[10px] font-bold text-white"
-                      >
-                        {favoritesCount}
-                      </motion.span>
-                    </motion.button>
-                  )}
-
-                  {/* Mobile filter toggle */}
-                  <Sheet
-                    open={mobileFiltersOpen}
-                    onOpenChange={setMobileFiltersOpen}
-                  >
-                    <SheetTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="relative lg:hidden"
-                      >
-                        <SlidersHorizontal className="mr-1.5 h-4 w-4" />
-                        <span className="xs:inline hidden">Filtre</span>
-                        {activeFilterCount > 0 && (
-                          <Badge className="ml-1.5 h-5 min-w-5 justify-center rounded-full px-1 text-[10px]">
-                            {activeFilterCount}
-                          </Badge>
-                        )}
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent
-                      side="bottom"
-                      className="max-h-[85vh] overflow-y-auto rounded-t-2xl px-6"
-                    >
-                      <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
-                      <SheetHeader className="p-0 pb-1">
-                        <SheetTitle className="text-base">Filtreler</SheetTitle>
-                      </SheetHeader>
-                      <div className="mt-3 pb-6">
-                        <FiltersPanel
-                          filters={filters}
-                          onFiltersChange={setFilters}
-                          sort={sort}
-                          onSortChange={setSort}
-                          radius={radius}
-                          onRadiusChange={setRadius}
-                          totalCount={places.length}
-                          filteredCount={filteredPlaces.length}
-                        />
-                      </div>
-                    </SheetContent>
-                  </Sheet>
-                </div>
-              </>
-            )}
-          </div>
-        </header>
-
-        {/* Quick filters — sticky below header */}
         {!loading && places.length > 0 && (
           <QuickFilters
             filters={filters}
             onFiltersChange={setFilters}
             showFavoritesOnly={showFavoritesOnly}
-            onToggleFavorites={() => setShowFavoritesOnly(!showFavoritesOnly)}
+            onToggleFavorites={() => setShowFavoritesOnly((value) => !value)}
             favoritesCount={favoritesCount}
             rightSlot={
               <div className="relative">
@@ -891,9 +464,7 @@ function PlacesExplorerInner() {
           />
         )}
 
-        {/* Main layout */}
         <div className="mx-auto flex w-full max-w-full flex-1 gap-0 overflow-x-clip xl:max-w-7xl">
-          {/* Desktop sidebar */}
           <aside className="hidden w-72 shrink-0 border-r lg:block">
             <div className="sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto p-4">
               <h2 className="mb-4 text-sm font-semibold tracking-wider text-muted-foreground uppercase">
@@ -912,7 +483,6 @@ function PlacesExplorerInner() {
             </div>
           </aside>
 
-          {/* Content */}
           <main className="min-w-0 flex-1 p-4 lg:p-6">
             <AnimatePresence mode="wait">
               {loading ? (
@@ -964,81 +534,17 @@ function PlacesExplorerInner() {
                   className="flex flex-col items-center justify-center py-20 text-center"
                 >
                   {showFavoritesOnly ? (
-                    <>
-                      <motion.div
-                        animate={
-                          reducedMotion ? undefined : { scale: [1, 1.1, 1] }
-                        }
-                        transition={
-                          reducedMotion
-                            ? undefined
-                            : { repeat: Infinity, duration: 1.5 }
-                        }
-                      >
-                        <Heart className="h-16 w-16 text-pink-300" />
-                      </motion.div>
-                      <h3 className="mt-4 text-lg font-semibold">
-                        Henüz Favori Mekanınız Yok
-                      </h3>
-                      <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-                        Beğendiğiniz mekanlardaki kalp ikonuna tıklayarak
-                        favorilerinize ekleyin.
-                      </p>
-                      <Button
-                        variant="outline"
-                        onClick={() => setShowFavoritesOnly(false)}
-                        className="mt-4"
-                        size="sm"
-                      >
-                        Keşfetmeye Başla
-                      </Button>
-                    </>
+                    <FavoritesEmptyState
+                      onShowAll={() => setShowFavoritesOnly(false)}
+                      reducedMotion={reducedMotion}
+                    />
+                  ) : places.length === 0 ? (
+                    <NoResultsEmptyState onRetry={fetchPlaces} />
                   ) : (
-                    <>
-                      <motion.div
-                        animate={
-                          reducedMotion || places.length === 0
-                            ? undefined
-                            : { x: [-4, 4, -4] }
-                        }
-                        transition={
-                          reducedMotion || places.length === 0
-                            ? undefined
-                            : { repeat: Infinity, duration: 1.5 }
-                        }
-                      >
-                        <SearchX className="h-16 w-16 text-muted-foreground/30" />
-                      </motion.div>
-                      <h3 className="mt-4 text-lg font-semibold">
-                        {places.length === 0
-                          ? "Sonuç Bulunamadı"
-                          : "Filtrelere Uygun Sonuç Yok"}
-                      </h3>
-                      <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-                        {places.length === 0
-                          ? "Bu alanda mekan bulunamadı. Arama yarıçapını artırmayı deneyin."
-                          : "Aktif filtrelere uygun mekan bulunamadı. Filtreleri genişletmeyi deneyin."}
-                      </p>
-                      {places.length === 0 ? (
-                        <Button
-                          onClick={fetchPlaces}
-                          className="mt-4"
-                          size="sm"
-                        >
-                          <RefreshCw className="mr-2 h-4 w-4" />
-                          Tekrar Ara
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="outline"
-                          onClick={() => setFilters(DEFAULT_FILTERS)}
-                          className="mt-4"
-                          size="sm"
-                        >
-                          Filtreleri Temizle
-                        </Button>
-                      )}
-                    </>
+                    <FilterEmptyState
+                      onClearFilters={() => setFilters(DEFAULT_FILTERS)}
+                      reducedMotion={reducedMotion}
+                    />
                   )}
                 </motion.div>
               ) : viewMode === "grid" ? (
@@ -1102,7 +608,6 @@ function PlacesExplorerInner() {
           </main>
         </div>
 
-        {/* Detail sheet */}
         <PlaceDetailSheet
           place={detailPlace}
           open={detailOpen}
@@ -1112,7 +617,6 @@ function PlacesExplorerInner() {
           onToggleFavorite={toggleFavorite}
         />
 
-        {/* Scroll to top */}
         <ScrollToTop />
       </div>
     </TooltipProvider>

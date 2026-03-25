@@ -2,31 +2,23 @@
 
 import { memo } from "react"
 import { motion, useReducedMotion } from "motion/react"
-import { toast } from "sonner"
 import {
-  Star,
   MessageSquare,
   MapPin,
-  Clock,
+  ShoppingBag,
+  Star,
   Truck,
   UtensilsCrossed,
-  ShoppingBag,
-  Share2,
-  Heart,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { FavoriteButton } from "./favorite-button"
 import { BlurImage } from "./blur-image"
+import { OpenStatusBadge } from "./open-status-badge"
+import { ShareButton } from "./share-button"
+import { usePlaceDisplay } from "@/hooks/use-place-display"
 import type { Place } from "@/lib/types"
-import { PRICE_LEVEL_SYMBOL } from "@/lib/constants"
-import { haversineDistance, formatDistance } from "@/lib/geo"
-import {
-  getPhotoUrl,
-  formatReviewCount,
-  sharePlace,
-  getRatingColor,
-  getCategoryColor,
-  getRatingGlow,
-} from "@/lib/place-utils"
+import { formatDistance } from "@/lib/geo"
+import { formatReviewCount, getPhotoUrl } from "@/lib/place-utils"
 
 interface PlaceCardProps {
   place: Place
@@ -47,41 +39,16 @@ export const PlaceCard = memo(function PlaceCard({
     ? getPhotoUrl(place.photos[0].name, 600)
     : null
 
-  const distance =
-    userLocation && place.location
-      ? haversineDistance(
-          userLocation.lat,
-          userLocation.lng,
-          place.location.latitude,
-          place.location.longitude
-        )
-      : null
-
-  const priceSymbol = place.priceLevel
-    ? PRICE_LEVEL_SYMBOL[place.priceLevel]
-    : null
-
-  const isOpen = place.currentOpeningHours?.openNow
-  const ratingColor = place.rating ? getRatingColor(place.rating) : null
-  const ratingGlow = place.rating ? getRatingGlow(place.rating) : undefined
-  const categoryColor = getCategoryColor(place.primaryType, place.types)
+  const {
+    distance,
+    priceSymbol,
+    isOpen,
+    ratingColor,
+    ratingGlow,
+    categoryColor,
+  } = usePlaceDisplay(place, userLocation)
 
   const reducedMotion = useReducedMotion()
-
-  const handleShare = async (e: React.MouseEvent) => {
-    e.stopPropagation()
-    const result = await sharePlace(place)
-    if (result === "copied") {
-      toast.success("Panoya kopyalandı")
-    } else if (result === "failed") {
-      toast.error("Paylaşılamadı")
-    }
-  }
-
-  const handleFavorite = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    onToggleFavorite?.(place.id)
-  }
 
   return (
     <motion.div
@@ -103,7 +70,6 @@ export const PlaceCard = memo(function PlaceCard({
         borderTopColor: `var(--neon-${categoryColor.category})`,
       }}
     >
-      {/* Photo */}
       <div className="relative aspect-[16/10] overflow-hidden bg-muted">
         {photoUrl ? (
           <motion.div
@@ -133,27 +99,14 @@ export const PlaceCard = memo(function PlaceCard({
           </div>
         )}
 
-        {/* Gradient overlay on photo */}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
 
-        {/* Open/Closed badge with neon glow */}
         {isOpen !== undefined && (
           <div className="absolute top-3 left-3">
-            <Badge
-              variant={isOpen ? "default" : "secondary"}
-              className={
-                isOpen
-                  ? "bg-emerald-500/90 text-white shadow-[0_0_10px_oklch(0.7_0.2_145_/_0.4)] backdrop-blur-sm hover:bg-emerald-500/90"
-                  : "bg-red-500/90 text-white shadow-[0_0_10px_oklch(0.6_0.2_25_/_0.4)] backdrop-blur-sm hover:bg-red-500/90"
-              }
-            >
-              <Clock className="mr-1 h-3 w-3" />
-              {isOpen ? "Açık" : "Kapalı"}
-            </Badge>
+            <OpenStatusBadge isOpen={isOpen} />
           </div>
         )}
 
-        {/* Top right: distance + share + favorite */}
         <div className="absolute top-3 right-3 flex items-center gap-1.5">
           {distance !== null && (
             <Badge
@@ -164,33 +117,22 @@ export const PlaceCard = memo(function PlaceCard({
               {formatDistance(distance)}
             </Badge>
           )}
-          <button
-            onClick={handleShare}
-            className="rounded-full bg-black/50 p-1.5 text-white opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100 hover:bg-black/70"
-            title="Paylaş"
-          >
-            <Share2 className="h-3.5 w-3.5" />
-          </button>
-          <motion.button
-            onClick={handleFavorite}
-            whileTap={{ scale: 1.3 }}
-            transition={{ type: "spring", stiffness: 400, damping: 10 }}
-            className={`rounded-full p-1.5 backdrop-blur-sm transition-opacity ${
+          <ShareButton
+            place={place}
+            className="rounded-full bg-black/50 p-1.5 text-white opacity-0 backdrop-blur-sm group-hover:opacity-100 hover:bg-black/70"
+            iconClassName="text-white"
+          />
+          <FavoriteButton
+            isFavorite={isFavorite}
+            onToggle={() => onToggleFavorite?.(place.id)}
+            className={`backdrop-blur-sm ${
               isFavorite
                 ? "bg-pink-500/80 text-white shadow-[0_0_12px_oklch(0.7_0.22_350_/_0.5)]"
                 : "bg-black/50 text-white opacity-0 group-hover:opacity-100 hover:bg-black/70"
             }`}
-            aria-label={isFavorite ? "Favorilerden çıkar" : "Favorilere ekle"}
-            aria-pressed={isFavorite}
-          >
-            <Heart
-              className="h-3.5 w-3.5"
-              fill={isFavorite ? "currentColor" : "none"}
-            />
-          </motion.button>
+          />
         </div>
 
-        {/* Place name overlay on photo */}
         <div className="absolute right-3 bottom-2 left-3">
           <h3
             className="truncate text-sm font-semibold text-white"
@@ -203,16 +145,13 @@ export const PlaceCard = memo(function PlaceCard({
         </div>
       </div>
 
-      {/* Content */}
       <div className="p-4">
-        {/* Type */}
         {place.primaryTypeDisplayName && (
           <p className="truncate text-sm text-muted-foreground">
             {place.primaryTypeDisplayName.text}
           </p>
         )}
 
-        {/* Rating, reviews, price */}
         <div className="mt-2 flex items-center gap-3 text-sm">
           {place.rating !== undefined && ratingColor && (
             <div
@@ -240,7 +179,6 @@ export const PlaceCard = memo(function PlaceCard({
           )}
         </div>
 
-        {/* Feature tags */}
         <div className="mt-3 flex flex-wrap gap-1.5">
           {place.delivery && (
             <Badge variant="outline" className="text-xs font-normal">
@@ -262,7 +200,6 @@ export const PlaceCard = memo(function PlaceCard({
           )}
         </div>
 
-        {/* Address */}
         {place.shortFormattedAddress && (
           <p className="mt-2.5 truncate text-xs text-muted-foreground">
             {place.shortFormattedAddress}

@@ -1,5 +1,11 @@
 import type { Place, FilterState, CategoryColor } from "./types"
-import { PRICE_LEVEL_MAP, RESTAURANT_TYPES, CAFE_TYPES, BAR_TYPES, PASTRY_TYPES } from "./constants"
+import {
+  PRICE_LEVEL_MAP,
+  RESTAURANT_TYPES,
+  CAFE_TYPES,
+  BAR_TYPES,
+  PASTRY_TYPES,
+} from "./constants"
 
 export function getRatingColor(rating: number): {
   text: string

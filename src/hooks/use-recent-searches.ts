@@ -22,10 +22,10 @@ export function useRecentSearches() {
   const addSearch = useCallback((placeId: string, label: string) => {
     const current = store.getSnapshot()
     const filtered = current.filter((s) => s.placeId !== placeId)
-    const next = [
-      { placeId, label, timestamp: Date.now() },
-      ...filtered,
-    ].slice(0, MAX_ITEMS)
+    const next = [{ placeId, label, timestamp: Date.now() }, ...filtered].slice(
+      0,
+      MAX_ITEMS
+    )
     store.set(next)
   }, [])
 

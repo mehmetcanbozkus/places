@@ -3,7 +3,11 @@
 import { motion } from "motion/react"
 import { Star } from "lucide-react"
 import type { Review } from "@/lib/types"
-import { getRatingColor, getRatingGlow, formatReviewCount } from "@/lib/place-utils"
+import {
+  getRatingColor,
+  getRatingGlow,
+  formatReviewCount,
+} from "@/lib/place-utils"
 
 interface RatingBreakdownProps {
   reviews: Review[]

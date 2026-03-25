@@ -54,7 +54,12 @@ export const RESTAURANT_TYPES = new Set([
   "fast_food_restaurant",
   "meal_takeaway",
 ])
-export const CAFE_TYPES = new Set(["cafe", "coffee_shop", "tea_house", "bakery"])
+export const CAFE_TYPES = new Set([
+  "cafe",
+  "coffee_shop",
+  "tea_house",
+  "bakery",
+])
 export const BAR_TYPES = new Set([
   "bar",
   "night_club",

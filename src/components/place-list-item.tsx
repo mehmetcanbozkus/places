@@ -3,28 +3,14 @@
 import { memo } from "react"
 import Image from "next/image"
 import { motion } from "motion/react"
-import { toast } from "sonner"
-import {
-  Star,
-  MessageSquare,
-  MapPin,
-  Clock,
-  Share2,
-  UtensilsCrossed,
-  Heart,
-} from "lucide-react"
-import { Badge } from "@/components/ui/badge"
+import { MapPin, MessageSquare, Star, UtensilsCrossed } from "lucide-react"
+import { FavoriteButton } from "./favorite-button"
+import { OpenStatusBadge } from "./open-status-badge"
+import { ShareButton } from "./share-button"
+import { usePlaceDisplay } from "@/hooks/use-place-display"
 import type { Place } from "@/lib/types"
-import { PRICE_LEVEL_SYMBOL } from "@/lib/constants"
-import { haversineDistance, formatDistance } from "@/lib/geo"
-import {
-  getPhotoUrl,
-  formatReviewCount,
-  sharePlace,
-  getRatingColor,
-  getCategoryColor,
-  getRatingGlow,
-} from "@/lib/place-utils"
+import { formatDistance } from "@/lib/geo"
+import { formatReviewCount, getPhotoUrl } from "@/lib/place-utils"
 
 interface PlaceListItemProps {
   place: Place
@@ -45,36 +31,14 @@ export const PlaceListItem = memo(function PlaceListItem({
     ? getPhotoUrl(place.photos[0].name, 200)
     : null
 
-  const distance =
-    userLocation && place.location
-      ? haversineDistance(
-          userLocation.lat,
-          userLocation.lng,
-          place.location.latitude,
-          place.location.longitude
-        )
-      : null
-
-  const priceSymbol = place.priceLevel
-    ? PRICE_LEVEL_SYMBOL[place.priceLevel]
-    : null
-
-  const isOpen = place.currentOpeningHours?.openNow
-  const ratingColor = place.rating ? getRatingColor(place.rating) : null
-  const ratingGlow = place.rating ? getRatingGlow(place.rating) : undefined
-  const categoryColor = getCategoryColor(place.primaryType, place.types)
-
-  const handleFavorite = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    onToggleFavorite?.(place.id)
-  }
-
-  const handleShare = async (e: React.MouseEvent) => {
-    e.stopPropagation()
-    const result = await sharePlace(place)
-    if (result === "copied") toast.success("Panoya kopyalandı")
-    else if (result === "failed") toast.error("Paylaşılamadı")
-  }
+  const {
+    distance,
+    priceSymbol,
+    isOpen,
+    ratingColor,
+    ratingGlow,
+    categoryColor,
+  } = usePlaceDisplay(place, userLocation)
 
   return (
     <motion.div
@@ -91,7 +55,6 @@ export const PlaceListItem = memo(function PlaceListItem({
         borderLeftColor: `var(--neon-${categoryColor.category})`,
       }}
     >
-      {/* Thumbnail */}
       <div className="relative h-20 w-24 shrink-0 overflow-hidden rounded-lg bg-muted">
         {photoUrl ? (
           <Image
@@ -110,36 +73,25 @@ export const PlaceListItem = memo(function PlaceListItem({
         )}
       </div>
 
-      {/* Info */}
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
           <h3 className="truncate text-sm leading-tight font-semibold">
             {place.displayName.text}
           </h3>
           <div className="flex shrink-0 items-center gap-0.5">
-            <button
-              onClick={handleShare}
-              className="shrink-0 rounded-full p-1 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-muted"
-            >
-              <Share2 className="h-3.5 w-3.5 text-muted-foreground" />
-            </button>
-            <motion.button
-              onClick={handleFavorite}
-              whileTap={{ scale: 1.3 }}
-              transition={{ type: "spring", stiffness: 400, damping: 10 }}
-              className={`shrink-0 rounded-full p-1 transition-opacity ${
+            <ShareButton
+              place={place}
+              className="p-1 opacity-0 group-hover:opacity-100 hover:bg-muted"
+            />
+            <FavoriteButton
+              isFavorite={isFavorite}
+              onToggle={() => onToggleFavorite?.(place.id)}
+              className={`p-1 ${
                 isFavorite
                   ? "text-pink-500"
                   : "text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-muted"
               }`}
-              aria-label={isFavorite ? "Favorilerden çıkar" : "Favorilere ekle"}
-              aria-pressed={isFavorite}
-            >
-              <Heart
-                className="h-3.5 w-3.5"
-                fill={isFavorite ? "currentColor" : "none"}
-              />
-            </motion.button>
+            />
           </div>
         </div>
 
@@ -179,17 +131,7 @@ export const PlaceListItem = memo(function PlaceListItem({
             </span>
           )}
           {isOpen !== undefined && (
-            <Badge
-              variant="secondary"
-              className={`h-5 px-1.5 text-[10px] ${
-                isOpen
-                  ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                  : "bg-red-500/15 text-red-600 dark:text-red-400"
-              }`}
-            >
-              <Clock className="mr-0.5 h-2.5 w-2.5" />
-              {isOpen ? "Açık" : "Kapalı"}
-            </Badge>
+            <OpenStatusBadge isOpen={isOpen} variant="inline" />
           )}
         </div>
 

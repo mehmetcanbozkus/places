@@ -3,7 +3,6 @@
 import { useRef, useState, useMemo } from "react"
 import Image from "next/image"
 import { motion, AnimatePresence } from "motion/react"
-import { toast } from "sonner"
 import {
   Sheet,
   SheetContent,
@@ -15,8 +14,13 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { FavoriteButton } from "./favorite-button"
+import { OpenStatusBadge } from "./open-status-badge"
 import { PhotoLightbox } from "./photo-lightbox"
 import { RatingBreakdown } from "./rating-breakdown"
+import { ShareButton } from "./share-button"
+import { OpeningHours } from "./place-detail-sheet/opening-hours"
+import { usePlaceDisplay } from "@/hooks/use-place-display"
 import {
   Star,
   MessageSquare,
@@ -40,9 +44,7 @@ import {
   Coffee,
   ChevronLeft,
   ChevronRight,
-  Share2,
   Images,
-  Heart,
   Navigation,
   PenSquare,
   Camera,
@@ -51,12 +53,7 @@ import {
 } from "lucide-react"
 import type { Place } from "@/lib/types"
 import { PRICE_LEVEL_MAP } from "@/lib/constants"
-import {
-  getPhotoUrl,
-  formatReviewCount,
-  sharePlace,
-  getRatingColor,
-} from "@/lib/place-utils"
+import { getPhotoUrl, formatReviewCount } from "@/lib/place-utils"
 
 interface PlaceDetailSheetProps {
   place: Place | null
@@ -259,19 +256,12 @@ export function PlaceDetailSheet({
     return reviews.filter((r) => r.rating === reviewFilter)
   }, [reviews, reviewFilter])
 
+  const { isOpen, ratingColor } = usePlaceDisplay(place)
+  const showWriteReviewLink = false
+
   const openLightbox = (index: number) => {
     setLightboxIndex(index)
     setLightboxOpen(true)
-  }
-
-  const handleShare = async () => {
-    if (!place) return
-    const result = await sharePlace(place)
-    if (result === "copied") {
-      toast.success("Panoya kopyalandı")
-    } else if (result === "failed") {
-      toast.error("Paylaşılamadı")
-    }
   }
 
   return (
@@ -324,58 +314,37 @@ export function PlaceDetailSheet({
                           )}
                         </div>
                         <div className="flex shrink-0 items-center gap-1">
-                          <motion.button
-                            onClick={() => onToggleFavorite?.(place.id)}
-                            whileTap={{ scale: 1.3 }}
-                            transition={{
-                              type: "spring",
-                              stiffness: 400,
-                              damping: 10,
-                            }}
-                            className={`rounded-full p-2 transition-all ${
+                          <FavoriteButton
+                            isFavorite={!!isFavorite}
+                            onToggle={() => onToggleFavorite?.(place.id)}
+                            size="md"
+                            className={
                               isFavorite
                                 ? "text-pink-500"
                                 : "text-muted-foreground hover:bg-muted"
-                            }`}
-                            aria-label={
-                              isFavorite
-                                ? "Favorilerden çıkar"
-                                : "Favorilere ekle"
                             }
-                            aria-pressed={isFavorite}
-                          >
-                            <Heart
-                              className="h-5 w-5"
-                              fill={isFavorite ? "currentColor" : "none"}
-                            />
-                          </motion.button>
-                          <Button
+                          />
+                          <ShareButton
+                            place={place}
                             variant="outline"
-                            size="icon"
-                            className="h-9 w-9"
-                            onClick={handleShare}
-                            title="Paylaş"
-                          >
-                            <Share2 className="h-4 w-4" />
-                          </Button>
+                            stopPropagation={false}
+                          />
                         </div>
                       </div>
 
                       <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
-                        {place.rating !== undefined &&
-                          (() => {
-                            const rc = getRatingColor(place.rating!)
-                            return (
-                              <div className="flex items-center gap-1">
-                                <Star
-                                  className={`h-4 w-4 ${rc.fill} ${rc.text}`}
-                                />
-                                <span className={`font-semibold ${rc.text}`}>
-                                  {place.rating!.toFixed(1)}
-                                </span>
-                              </div>
-                            )
-                          })()}
+                        {place.rating !== undefined && ratingColor && (
+                          <div className="flex items-center gap-1">
+                            <Star
+                              className={`h-4 w-4 ${ratingColor.fill} ${ratingColor.text}`}
+                            />
+                            <span
+                              className={`font-semibold ${ratingColor.text}`}
+                            >
+                              {place.rating.toFixed(1)}
+                            </span>
+                          </div>
+                        )}
                         {place.userRatingCount !== undefined && (
                           <div className="flex items-center gap-1 text-muted-foreground">
                             <MessageSquare className="h-3.5 w-3.5" />
@@ -389,23 +358,8 @@ export function PlaceDetailSheet({
                             {PRICE_LEVEL_MAP[place.priceLevel]}
                           </Badge>
                         )}
-                        {place.currentOpeningHours?.openNow !== undefined && (
-                          <Badge
-                            variant={
-                              place.currentOpeningHours.openNow
-                                ? "default"
-                                : "secondary"
-                            }
-                            className={
-                              place.currentOpeningHours.openNow
-                                ? "bg-emerald-500/90 text-white hover:bg-emerald-500/90"
-                                : "bg-red-500/90 text-white hover:bg-red-500/90"
-                            }
-                          >
-                            {place.currentOpeningHours.openNow
-                              ? "Açık"
-                              : "Kapalı"}
-                          </Badge>
+                        {isOpen !== undefined && (
+                          <OpenStatusBadge isOpen={isOpen} variant="plain" />
                         )}
                       </div>
                     </div>
@@ -530,27 +484,29 @@ export function PlaceDetailSheet({
                         )}
                       </div>
                       {/* Secondary Google Maps links */}
-                      {(place.googleMapsLinks?.writeAReviewUri ||
+                      {((showWriteReviewLink &&
+                        place.googleMapsLinks?.writeAReviewUri) ||
                         place.googleMapsLinks?.reviewsUri ||
                         place.googleMapsLinks?.photosUri) && (
                         <div className="flex gap-2">
-                          {place.googleMapsLinks?.writeAReviewUri && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              asChild
-                              className="h-8 text-xs text-muted-foreground"
-                            >
-                              <a
-                                href={place.googleMapsLinks.writeAReviewUri}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                          {showWriteReviewLink &&
+                            place.googleMapsLinks?.writeAReviewUri && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                asChild
+                                className="h-8 text-xs text-muted-foreground"
                               >
-                                <PenSquare className="mr-1.5 h-3.5 w-3.5" />
-                                Yorum Yaz
-                              </a>
-                            </Button>
-                          )}
+                                <a
+                                  href={place.googleMapsLinks.writeAReviewUri}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  <PenSquare className="mr-1.5 h-3.5 w-3.5" />
+                                  Yorum Yaz
+                                </a>
+                              </Button>
+                            )}
                           {place.googleMapsLinks?.reviewsUri && (
                             <Button
                               variant="ghost"
@@ -678,82 +634,13 @@ export function PlaceDetailSheet({
                             <Clock className="h-4 w-4" />
                             Çalışma Saatleri
                           </h3>
-                          {(() => {
-                            const today = new Date().getDay()
-                            const todayIndex = today === 0 ? 6 : today - 1
-                            const descriptions =
+                          <OpeningHours
+                            descriptions={
                               place.regularOpeningHours?.weekdayDescriptions ||
                               place.currentOpeningHours?.weekdayDescriptions ||
                               []
-                            return (
-                              <div className="overflow-hidden rounded-lg border bg-muted/30">
-                                {descriptions.map((desc, i) => {
-                                  const colonIndex = desc.indexOf(":")
-                                  const dayName =
-                                    colonIndex > -1
-                                      ? desc.slice(0, colonIndex).trim()
-                                      : desc
-                                  const hours =
-                                    colonIndex > -1
-                                      ? desc.slice(colonIndex + 1).trim()
-                                      : ""
-                                  const isToday = i === todayIndex
-                                  const isClosed =
-                                    hours.toLowerCase().includes("kapalı") ||
-                                    hours.toLowerCase().includes("closed")
-
-                                  return (
-                                    <div
-                                      key={i}
-                                      className={`flex items-center px-3 py-2.5 ${
-                                        isToday
-                                          ? "border-l-2 border-emerald-500 bg-primary/5"
-                                          : "border-l-2 border-transparent"
-                                      }`}
-                                    >
-                                      <div
-                                        className={`mr-3 h-1.5 w-1.5 shrink-0 rounded-full ${
-                                          isToday
-                                            ? "bg-emerald-500"
-                                            : isClosed
-                                              ? "bg-destructive"
-                                              : "bg-muted-foreground/30"
-                                        }`}
-                                        style={
-                                          isToday
-                                            ? {
-                                                boxShadow:
-                                                  "0 0 6px rgb(16 185 129 / 0.6)",
-                                              }
-                                            : undefined
-                                        }
-                                      />
-                                      <span
-                                        className={`w-24 text-sm ${
-                                          isToday
-                                            ? "font-medium text-foreground"
-                                            : "text-muted-foreground"
-                                        }`}
-                                      >
-                                        {dayName}
-                                      </span>
-                                      <span
-                                        className={`ml-auto text-sm ${
-                                          isToday
-                                            ? "font-medium text-foreground"
-                                            : isClosed
-                                              ? "text-destructive"
-                                              : "text-muted-foreground"
-                                        }`}
-                                      >
-                                        {hours}
-                                      </span>
-                                    </div>
-                                  )
-                                })}
-                              </div>
-                            )
-                          })()}
+                            }
+                          />
                         </div>
                       </>
                     )}
