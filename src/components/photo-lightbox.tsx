@@ -183,6 +183,7 @@ export function PhotoLightbox({
                     isZoomed ? "scale-150 cursor-zoom-out" : "cursor-zoom-in"
                   }`}
                   draggable={false}
+                  unoptimized
                 />
               </motion.div>
             </AnimatePresence>
@@ -230,6 +231,7 @@ export function PhotoLightbox({
                       sizes="64px"
                       className="object-cover"
                       draggable={false}
+                      unoptimized
                     />
                   </button>
                 ))}

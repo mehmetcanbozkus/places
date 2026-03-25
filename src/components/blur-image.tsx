@@ -34,6 +34,7 @@ export function BlurImage({
           fill
           sizes={sizes}
           className="scale-110 object-cover blur-xl"
+          unoptimized
         />
       )}
 
@@ -53,6 +54,7 @@ export function BlurImage({
         className={`object-cover transition-opacity duration-500 ${
           loaded ? "opacity-100" : "opacity-0"
         }`}
+        unoptimized
       />
     </div>
   )
