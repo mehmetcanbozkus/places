@@ -1,6 +1,5 @@
 import { NextRequest } from "next/server"
-
-const GOOGLE_API_KEY = process.env.GOOGLE_PLACES_API_KEY
+import { GOOGLE_API_KEY } from "../_shared"
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
@@ -8,7 +7,10 @@ export async function GET(request: NextRequest) {
   const maxWidthPx = searchParams.get("maxWidthPx") || "400"
   const maxHeightPx = searchParams.get("maxHeightPx")
 
-  if (!name || !GOOGLE_API_KEY) {
+  if (!GOOGLE_API_KEY) {
+    return new Response("API key not configured", { status: 500 })
+  }
+  if (!name) {
     return new Response("Missing parameters", { status: 400 })
   }
 

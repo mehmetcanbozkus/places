@@ -1,45 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-
-const GOOGLE_API_KEY = process.env.GOOGLE_PLACES_API_KEY
-
-const FIELD_MASK = [
-  "places.id",
-  "places.displayName",
-  "places.formattedAddress",
-  "places.shortFormattedAddress",
-  "places.location",
-  "places.rating",
-  "places.userRatingCount",
-  "places.photos",
-  "places.priceLevel",
-  "places.primaryType",
-  "places.primaryTypeDisplayName",
-  "places.types",
-  "places.currentOpeningHours",
-  "places.editorialSummary",
-  "places.businessStatus",
-  "places.delivery",
-  "places.dineIn",
-  "places.takeout",
-  "places.reservable",
-  "places.servesVegetarianFood",
-  "places.outdoorSeating",
-  "places.goodForGroups",
-  "places.goodForChildren",
-  "places.servesBeer",
-  "places.servesWine",
-  "places.liveMusic",
-  "places.servesCocktails",
-  "places.servesCoffee",
-  "places.servesBreakfast",
-  "places.servesLunch",
-  "places.servesDinner",
-  "places.servesBrunch",
-  "places.servesDessert",
-  "places.allowsDogs",
-  "places.websiteUri",
-  "places.googleMapsUri",
-].join(",")
+import { GOOGLE_API_KEY, apiKeyError, NEARBY_FIELD_MASK } from "../_shared"
 
 // Per the docs, using includedPrimaryTypes with a general type like "restaurant"
 // automatically includes all subtypes (chinese_restaurant, seafood_restaurant, etc.)
@@ -110,7 +70,7 @@ async function fetchNearbyGroup(
       headers: {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": GOOGLE_API_KEY!,
-        "X-Goog-FieldMask": FIELD_MASK,
+        "X-Goog-FieldMask": NEARBY_FIELD_MASK,
       },
       body: JSON.stringify({
         ...typeGroup,
@@ -134,12 +94,7 @@ async function fetchNearbyGroup(
 }
 
 export async function POST(request: NextRequest) {
-  if (!GOOGLE_API_KEY) {
-    return NextResponse.json(
-      { error: "API key not configured" },
-      { status: 500 }
-    )
-  }
+  if (!GOOGLE_API_KEY) return apiKeyError()
 
   const body = await request.json()
   const {

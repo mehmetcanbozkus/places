@@ -1,70 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
-
-const GOOGLE_API_KEY = process.env.GOOGLE_PLACES_API_KEY
-
-const FIELD_MASK = [
-  "id",
-  "displayName",
-  "formattedAddress",
-  "shortFormattedAddress",
-  "location",
-  "rating",
-  "userRatingCount",
-  "photos",
-  "priceLevel",
-  "primaryType",
-  "primaryTypeDisplayName",
-  "types",
-  "currentOpeningHours",
-  "regularOpeningHours",
-  "editorialSummary",
-  "businessStatus",
-  "delivery",
-  "dineIn",
-  "takeout",
-  "reservable",
-  "servesVegetarianFood",
-  "outdoorSeating",
-  "goodForGroups",
-  "goodForChildren",
-  "servesBeer",
-  "servesWine",
-  "liveMusic",
-  "servesCocktails",
-  "servesCoffee",
-  "servesBreakfast",
-  "servesLunch",
-  "servesDinner",
-  "servesBrunch",
-  "servesDessert",
-  "allowsDogs",
-  "menuForChildren",
-  "restroom",
-  "goodForWatchingSports",
-  "parkingOptions",
-  "paymentOptions",
-  "accessibilityOptions",
-  "websiteUri",
-  "googleMapsUri",
-  "internationalPhoneNumber",
-  "reviews",
-  "curbsidePickup",
-  "googleMapsLinks",
-  "generativeSummary",
-  "reviewSummary",
-  "priceRange",
-].join(",")
+import { GOOGLE_API_KEY, apiKeyError, DETAIL_FIELD_MASK } from "../_shared"
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!GOOGLE_API_KEY) {
-    return NextResponse.json(
-      { error: "API key not configured" },
-      { status: 500 }
-    )
-  }
+  if (!GOOGLE_API_KEY) return apiKeyError()
 
   const { id } = await params
   const languageCode = request.nextUrl.searchParams.get("languageCode") || "tr"
@@ -75,7 +16,7 @@ export async function GET(
       headers: {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": GOOGLE_API_KEY,
-        "X-Goog-FieldMask": FIELD_MASK,
+        "X-Goog-FieldMask": DETAIL_FIELD_MASK,
       },
     }
   )

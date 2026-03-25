@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-
-const GOOGLE_API_KEY = process.env.GOOGLE_PLACES_API_KEY
+import { GOOGLE_API_KEY, apiKeyError } from "../_shared"
 
 export async function GET(request: NextRequest) {
-  if (!GOOGLE_API_KEY) {
-    return NextResponse.json(
-      { error: "API key not configured" },
-      { status: 500 }
-    )
-  }
+  if (!GOOGLE_API_KEY) return apiKeyError()
 
   const address = request.nextUrl.searchParams.get("address")
   if (!address) {
