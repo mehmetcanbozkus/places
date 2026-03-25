@@ -1,5 +1,6 @@
 "use client"
 
+import { memo } from "react"
 import Image from "next/image"
 import { motion } from "motion/react"
 import { toast } from "sonner"
@@ -34,7 +35,7 @@ interface PlaceListItemProps {
   onToggleFavorite?: (placeId: string) => void
 }
 
-export function PlaceListItem({
+export const PlaceListItem = memo(function PlaceListItem({
   place,
   userLocation,
   onClick,
@@ -200,4 +201,4 @@ export function PlaceListItem({
       </div>
     </motion.div>
   )
-}
+})

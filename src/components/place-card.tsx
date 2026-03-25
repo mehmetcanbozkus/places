@@ -1,5 +1,6 @@
 "use client"
 
+import { memo } from "react"
 import { motion, useReducedMotion } from "motion/react"
 import { toast } from "sonner"
 import {
@@ -36,7 +37,7 @@ interface PlaceCardProps {
   onToggleFavorite?: (placeId: string) => void
 }
 
-export function PlaceCard({
+export const PlaceCard = memo(function PlaceCard({
   place,
   userLocation,
   onClick,
@@ -271,4 +272,4 @@ export function PlaceCard({
       </div>
     </motion.div>
   )
-}
+})
