@@ -107,7 +107,6 @@ function PhotoGallery({
               sizes="(max-width: 640px) 100vw, 512px"
               loading={i === 0 ? "eager" : "lazy"}
               className="object-cover transition-transform duration-300 hover:scale-105"
-              unoptimized
             />
           </div>
         ))}
@@ -160,7 +159,6 @@ function ReviewCard({
             height={32}
             className="rounded-full object-cover"
             referrerPolicy="no-referrer"
-            unoptimized
           />
         )}
         <div className="min-w-0 flex-1">

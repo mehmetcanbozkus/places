@@ -30,10 +30,15 @@ export async function GET(request: NextRequest) {
   const data = await response.json()
 
   if (data.photoUri) {
-    return new Response(null, {
-      status: 302,
+    const imageResponse = await fetch(data.photoUri)
+    if (!imageResponse.ok) {
+      return new Response("Photo not found", { status: 404 })
+    }
+
+    return new Response(imageResponse.body, {
       headers: {
-        Location: data.photoUri,
+        "Content-Type":
+          imageResponse.headers.get("Content-Type") || "image/jpeg",
         "Cache-Control": "public, max-age=86400, immutable",
       },
     })

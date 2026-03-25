@@ -10,6 +10,7 @@ interface BlurImageProps {
   placeholderSrc?: string
   className?: string
   loading?: "eager" | "lazy"
+  sizes?: string
 }
 
 export function BlurImage({
@@ -18,6 +19,7 @@ export function BlurImage({
   placeholderSrc,
   className = "",
   loading = "lazy",
+  sizes = "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw",
 }: BlurImageProps) {
   const [loaded, setLoaded] = useState(false)
 
@@ -30,9 +32,8 @@ export function BlurImage({
           alt=""
           aria-hidden
           fill
-          sizes="100%"
+          sizes={sizes}
           className="scale-110 object-cover blur-xl"
-          unoptimized
         />
       )}
 
@@ -46,13 +47,12 @@ export function BlurImage({
         src={src}
         alt={alt}
         fill
-        sizes="100%"
+        sizes={sizes}
         loading={loading}
         onLoad={() => setLoaded(true)}
         className={`object-cover transition-opacity duration-500 ${
           loaded ? "opacity-100" : "opacity-0"
         }`}
-        unoptimized
       />
     </div>
   )

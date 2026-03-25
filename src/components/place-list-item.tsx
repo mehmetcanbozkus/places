@@ -101,7 +101,6 @@ export function PlaceListItem({
             sizes="96px"
             loading="lazy"
             className="object-cover"
-            unoptimized
           />
         ) : (
           <div className="flex h-full items-center justify-center">
