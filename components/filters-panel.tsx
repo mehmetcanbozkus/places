@@ -194,7 +194,8 @@ export function FiltersPanel({
         <div
           className="mt-1 h-1 rounded-full"
           style={{
-            background: "linear-gradient(to right, oklch(0.6 0.2 25), oklch(0.7 0.15 85), oklch(0.7 0.2 145))",
+            background:
+              "linear-gradient(to right, oklch(0.6 0.2 25), oklch(0.7 0.15 85), oklch(0.7 0.2 145))",
             opacity: 0.5,
           }}
         />

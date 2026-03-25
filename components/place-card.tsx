@@ -109,7 +109,12 @@ export function PlaceCard({
           <motion.div
             className="h-full w-full"
             whileHover={reducedMotion ? undefined : { scale: 1.08 }}
-            transition={{ type: "spring", stiffness: 200, damping: 25, duration: 0.5 }}
+            transition={{
+              type: "spring",
+              stiffness: 200,
+              damping: 25,
+              duration: 0.5,
+            }}
           >
             <BlurImage
               src={photoUrl}
@@ -138,8 +143,8 @@ export function PlaceCard({
               variant={isOpen ? "default" : "secondary"}
               className={
                 isOpen
-                  ? "bg-emerald-500/90 text-white backdrop-blur-sm hover:bg-emerald-500/90 shadow-[0_0_10px_oklch(0.7_0.2_145_/_0.4)]"
-                  : "bg-red-500/90 text-white backdrop-blur-sm hover:bg-red-500/90 shadow-[0_0_10px_oklch(0.6_0.2_25_/_0.4)]"
+                  ? "bg-emerald-500/90 text-white shadow-[0_0_10px_oklch(0.7_0.2_145_/_0.4)] backdrop-blur-sm hover:bg-emerald-500/90"
+                  : "bg-red-500/90 text-white shadow-[0_0_10px_oklch(0.6_0.2_25_/_0.4)] backdrop-blur-sm hover:bg-red-500/90"
               }
             >
               <Clock className="mr-1 h-3 w-3" />
@@ -186,7 +191,7 @@ export function PlaceCard({
         </div>
 
         {/* Place name overlay on photo */}
-        <div className="absolute bottom-2 left-3 right-3">
+        <div className="absolute right-3 bottom-2 left-3">
           <h3 className="truncate text-sm font-semibold text-white drop-shadow-md">
             {place.displayName.text}
           </h3>

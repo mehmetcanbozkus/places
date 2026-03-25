@@ -48,6 +48,11 @@ const FIELD_MASK = [
   "googleMapsUri",
   "internationalPhoneNumber",
   "reviews",
+  "curbsidePickup",
+  "googleMapsLinks",
+  "generativeSummary",
+  "reviewSummary",
+  "priceRange",
 ].join(",")
 
 export async function GET(

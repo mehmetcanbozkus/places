@@ -254,7 +254,7 @@ export function LocationSearch({
           }}
           onKeyDown={handleKeyDown}
           placeholder="Konum veya adres ara..."
-          className="pr-9 pl-9 focus:ring-2 focus:ring-primary/50 focus:shadow-[0_0_15px_var(--primary)]"
+          className="pr-9 pl-9 focus:shadow-[0_0_15px_var(--primary)] focus:ring-2 focus:ring-primary/50"
         />
         {loading && (
           <Loader2 className="absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
@@ -302,7 +302,10 @@ export function LocationSearch({
                   {recentSearches.map((recent) => (
                     <motion.div
                       key={recent.placeId}
-                      variants={{ hidden: { opacity: 0, y: -4 }, show: { opacity: 1, y: 0 } }}
+                      variants={{
+                        hidden: { opacity: 0, y: -4 },
+                        show: { opacity: 1, y: 0 },
+                      }}
                     >
                       <button
                         className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-accent/50"
@@ -344,7 +347,10 @@ export function LocationSearch({
                 return (
                   <motion.div
                     key={suggestion.placeId}
-                    variants={{ hidden: { opacity: 0, y: -4 }, show: { opacity: 1, y: 0 } }}
+                    variants={{
+                      hidden: { opacity: 0, y: -4 },
+                      show: { opacity: 1, y: 0 },
+                    }}
                   >
                     <button
                       className={`flex w-full items-start gap-3 px-3 py-2.5 text-left transition-colors ${

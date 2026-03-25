@@ -17,8 +17,11 @@ export function ScrollToTop() {
           const scrollY = window.scrollY
           setShow(scrollY > 400)
           // Calculate scroll progress (0-1) for the ring indicator
-          const docHeight = document.documentElement.scrollHeight - window.innerHeight
-          setScrollProgress(docHeight > 0 ? Math.min(scrollY / docHeight, 1) : 0)
+          const docHeight =
+            document.documentElement.scrollHeight - window.innerHeight
+          setScrollProgress(
+            docHeight > 0 ? Math.min(scrollY / docHeight, 1) : 0
+          )
           ticking = false
         })
         ticking = true
@@ -90,7 +93,13 @@ export function ScrollToTop() {
               className="transition-[stroke-dashoffset] duration-150 ease-out"
             />
             <defs>
-              <linearGradient id="scrollGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <linearGradient
+                id="scrollGradient"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
                 <stop offset="0%" stopColor="var(--primary)" />
                 <stop offset="100%" stopColor="var(--neon-restaurant)" />
               </linearGradient>

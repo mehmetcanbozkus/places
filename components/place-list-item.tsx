@@ -34,7 +34,11 @@ interface PlaceListItemProps {
 }
 
 export function PlaceListItem({
-  place, userLocation, onClick, isFavorite = false, onToggleFavorite,
+  place,
+  userLocation,
+  onClick,
+  isFavorite = false,
+  onToggleFavorite,
 }: PlaceListItemProps) {
   const photoUrl = place.photos?.[0]
     ? getPhotoUrl(place.photos[0].name, 200)
@@ -121,12 +125,15 @@ export function PlaceListItem({
             className={`shrink-0 rounded-full p-1 transition-opacity ${
               isFavorite
                 ? "text-pink-500"
-                : "opacity-0 group-hover:opacity-100 text-muted-foreground hover:bg-muted"
+                : "text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-muted"
             }`}
             aria-label={isFavorite ? "Favorilerden çıkar" : "Favorilere ekle"}
             aria-pressed={isFavorite}
           >
-            <Heart className="h-3.5 w-3.5" fill={isFavorite ? "currentColor" : "none"} />
+            <Heart
+              className="h-3.5 w-3.5"
+              fill={isFavorite ? "currentColor" : "none"}
+            />
           </motion.button>
         </div>
 
@@ -138,7 +145,10 @@ export function PlaceListItem({
 
         <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
           {place.rating !== undefined && ratingColor && (
-            <div className="flex items-center gap-0.5" style={{ textShadow: ratingGlow }}>
+            <div
+              className="flex items-center gap-0.5"
+              style={{ textShadow: ratingGlow }}
+            >
               <Star
                 className={`h-3.5 w-3.5 ${ratingColor.fill} ${ratingColor.text}`}
               />

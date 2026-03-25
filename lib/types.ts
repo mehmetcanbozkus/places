@@ -45,6 +45,11 @@ export interface Place {
   parkingOptions?: ParkingOptions
   paymentOptions?: PaymentOptions
   accessibilityOptions?: AccessibilityOptions
+  curbsidePickup?: boolean
+  googleMapsLinks?: GoogleMapsLinks
+  generativeSummary?: GenerativeSummary
+  reviewSummary?: ReviewSummary
+  priceRange?: PriceRange
 }
 
 export interface LocalizedText {
@@ -119,6 +124,35 @@ export interface AccessibilityOptions {
   wheelchairAccessibleEntrance?: boolean
   wheelchairAccessibleRestroom?: boolean
   wheelchairAccessibleSeating?: boolean
+}
+
+export interface GoogleMapsLinks {
+  directionsUri?: string
+  placeUri?: string
+  writeAReviewUri?: string
+  reviewsUri?: string
+  photosUri?: string
+}
+
+export interface GenerativeSummary {
+  overview?: LocalizedText
+  disclosureText?: LocalizedText
+}
+
+export interface ReviewSummary {
+  text?: LocalizedText
+  reviewsUri?: string
+}
+
+export interface Money {
+  currencyCode?: string
+  units?: string
+  nanos?: number
+}
+
+export interface PriceRange {
+  startPrice?: Money
+  endPrice?: Money
 }
 
 export type PriceLevel =
@@ -199,14 +233,36 @@ export function getRatingColor(rating: number): {
 }
 
 const RESTAURANT_TYPES = new Set([
-  "restaurant", "turkish_restaurant", "italian_restaurant", "chinese_restaurant",
-  "japanese_restaurant", "mexican_restaurant", "thai_restaurant", "indian_restaurant",
-  "seafood_restaurant", "steak_house", "pizza_restaurant", "hamburger_restaurant",
-  "kebab_shop", "fast_food_restaurant", "meal_takeaway",
+  "restaurant",
+  "turkish_restaurant",
+  "italian_restaurant",
+  "chinese_restaurant",
+  "japanese_restaurant",
+  "mexican_restaurant",
+  "thai_restaurant",
+  "indian_restaurant",
+  "seafood_restaurant",
+  "steak_house",
+  "pizza_restaurant",
+  "hamburger_restaurant",
+  "kebab_shop",
+  "fast_food_restaurant",
+  "meal_takeaway",
 ])
 const CAFE_TYPES = new Set(["cafe", "coffee_shop", "tea_house", "bakery"])
-const BAR_TYPES = new Set(["bar", "night_club", "pub", "wine_bar", "cocktail_bar"])
-const PASTRY_TYPES = new Set(["pastry_shop", "dessert_shop", "ice_cream_shop", "confectionery"])
+const BAR_TYPES = new Set([
+  "bar",
+  "night_club",
+  "pub",
+  "wine_bar",
+  "cocktail_bar",
+])
+const PASTRY_TYPES = new Set([
+  "pastry_shop",
+  "dessert_shop",
+  "ice_cream_shop",
+  "confectionery",
+])
 
 export interface CategoryColor {
   dark: string
@@ -214,13 +270,40 @@ export interface CategoryColor {
   category: string
 }
 
-export function getCategoryColor(primaryType?: string, types?: string[]): CategoryColor {
+export function getCategoryColor(
+  primaryType?: string,
+  types?: string[]
+): CategoryColor {
   const type = primaryType || types?.[0] || ""
-  if (RESTAURANT_TYPES.has(type)) return { dark: "oklch(0.75 0.2 45)", light: "oklch(0.55 0.2 45)", category: "restaurant" }
-  if (CAFE_TYPES.has(type)) return { dark: "oklch(0.75 0.2 145)", light: "oklch(0.45 0.18 145)", category: "cafe" }
-  if (BAR_TYPES.has(type)) return { dark: "oklch(0.7 0.25 310)", light: "oklch(0.5 0.22 310)", category: "bar" }
-  if (PASTRY_TYPES.has(type)) return { dark: "oklch(0.75 0.22 350)", light: "oklch(0.55 0.2 350)", category: "pastry" }
-  return { dark: "oklch(0.75 0.18 230)", light: "oklch(0.5 0.18 230)", category: "other" }
+  if (RESTAURANT_TYPES.has(type))
+    return {
+      dark: "oklch(0.75 0.2 45)",
+      light: "oklch(0.55 0.2 45)",
+      category: "restaurant",
+    }
+  if (CAFE_TYPES.has(type))
+    return {
+      dark: "oklch(0.75 0.2 145)",
+      light: "oklch(0.45 0.18 145)",
+      category: "cafe",
+    }
+  if (BAR_TYPES.has(type))
+    return {
+      dark: "oklch(0.7 0.25 310)",
+      light: "oklch(0.5 0.22 310)",
+      category: "bar",
+    }
+  if (PASTRY_TYPES.has(type))
+    return {
+      dark: "oklch(0.75 0.22 350)",
+      light: "oklch(0.55 0.2 350)",
+      category: "pastry",
+    }
+  return {
+    dark: "oklch(0.75 0.18 230)",
+    light: "oklch(0.5 0.18 230)",
+    category: "other",
+  }
 }
 
 export function getRatingGlow(rating: number): string {
