@@ -9,7 +9,9 @@ import {
   Suspense,
 } from "react"
 import { flushSync } from "react-dom"
-import { useSearchParams, useRouter } from "next/navigation"
+import { useQueryStates } from "nuqs"
+import { searchParamsParsers } from "@/lib/search-params"
+import { toast } from "sonner"
 import { motion, AnimatePresence, useReducedMotion } from "motion/react"
 import { PlaceCard } from "./place-card"
 import { PlaceListItem } from "./place-list-item"
@@ -48,13 +50,12 @@ import {
   Sun,
   Moon,
 } from "lucide-react"
-import type { Place, FilterState, SortOption } from "@/lib/types"
+import type { Place, FilterState, SortOption, PriceLevel } from "@/lib/types"
 import {
   DEFAULT_FILTERS,
   haversineDistance,
   countActiveFilters,
 } from "@/lib/types"
-import { parseUrlState, buildUrlParams } from "@/lib/url-state"
 import { useRecentSearches } from "@/hooks/use-recent-searches"
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh"
 import { useFavorites } from "@/hooks/use-favorites"
@@ -64,38 +65,28 @@ type LocationSource = "gps" | "search"
 type ViewMode = "grid" | "list"
 
 function PlacesExplorerInner() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const urlParsed = useRef(false)
-  const urlState = useRef(parseUrlState(searchParams))
+  const [searchParams, setSearchParams] = useQueryStates(searchParamsParsers)
 
-  const [location, setLocation] = useState<{
-    lat: number
-    lng: number
-  } | null>(urlState.current.location)
-  const [gpsLocation, setGpsLocation] = useState<{
-    lat: number
-    lng: number
-  } | null>(null)
+  // Derive location from URL params
+  const urlHasLocation = searchParams.lat !== null && searchParams.lng !== null
+
+  // Local state that is NOT in URL
+  const [gpsLocation, setGpsLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [locationSource, setLocationSource] = useState<LocationSource>(
-    urlState.current.location ? "search" : "gps"
-  )
-  const [locationLabel, setLocationLabel] = useState<string>(
-    urlState.current.locationLabel
+    urlHasLocation ? "search" : "gps"
   )
   const [locationStatus, setLocationStatus] = useState<
     "pending" | "granted" | "denied" | "error"
-  >(urlState.current.location ? "granted" : "pending")
+  >(urlHasLocation ? "granted" : "pending")
   const [places, setPlaces] = useState<Place[]>([])
   const [loading, setLoading] = useState(false)
   const [detailPlace, setDetailPlace] = useState<Place | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
   const [detailLoading, setDetailLoading] = useState(false)
-  const [filters, setFilters] = useState<FilterState>(urlState.current.filters)
-  const [sort, setSort] = useState<SortOption>(urlState.current.sort)
-  const [radius, setRadius] = useState(urlState.current.radius)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>("grid")
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
 
   const {
     searches: recentSearches,
@@ -104,8 +95,12 @@ function PlacesExplorerInner() {
     clearAll: clearRecentSearches,
   } = useRecentSearches()
 
-  const { favorites, toggle: toggleFavorite, isFavorite, count: favoritesCount } = useFavorites()
-  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
+  const {
+    favorites,
+    toggle: toggleFavorite,
+    isFavorite,
+    count: favoritesCount,
+  } = useFavorites()
   const reducedMotion = useReducedMotion()
   const { resolvedTheme, setTheme } = useTheme()
   const themeToggleRef = useRef<HTMLButtonElement>(null)
@@ -157,37 +152,76 @@ function PlacesExplorerInner() {
     })
   }, [resolvedTheme, setTheme])
 
-  // URL state sync (debounced)
-  const syncTimer = useRef<ReturnType<typeof setTimeout>>(null)
-  useEffect(() => {
-    if (!urlParsed.current) {
-      urlParsed.current = true
-      return
+  // Derive current location (from URL for search, from GPS state for GPS)
+  const location = useMemo(() => {
+    if (locationSource === "search" && searchParams.lat !== null && searchParams.lng !== null) {
+      return { lat: searchParams.lat, lng: searchParams.lng }
     }
-    if (syncTimer.current) clearTimeout(syncTimer.current)
-    syncTimer.current = setTimeout(() => {
-      const params = buildUrlParams({
-        location,
-        locationLabel,
-        sort,
-        radius,
-        filters,
-        locationSource,
-      })
-      const str = params.toString()
-      const current = new URLSearchParams(window.location.search).toString()
-      if (str !== current) {
-        router.replace(str ? `?${str}` : "?", { scroll: false })
-      }
-    }, 500)
-    return () => {
-      if (syncTimer.current) clearTimeout(syncTimer.current)
-    }
-  }, [location, locationLabel, sort, radius, filters, locationSource, router])
+    return gpsLocation
+  }, [locationSource, searchParams.lat, searchParams.lng, gpsLocation])
+
+  const locationLabel = searchParams.q ?? (locationSource === "gps" ? "Mevcut Konum" : "")
+
+  // Derive FilterState from URL params
+  const filters: FilterState = useMemo(() => ({
+    minRating: searchParams.mr,
+    minReviewCount: searchParams.mrc,
+    priceLevels: (searchParams.pl ?? []) as PriceLevel[],
+    openNow: searchParams.on ?? false,
+    delivery: searchParams.del ?? false,
+    dineIn: searchParams.din ?? false,
+    takeout: searchParams.to ?? false,
+    servesVegetarianFood: searchParams.veg ?? false,
+    outdoorSeating: searchParams.out ?? false,
+    reservable: searchParams.res ?? false,
+    goodForGroups: searchParams.grp ?? false,
+    liveMusic: searchParams.mus ?? false,
+    servesCocktails: searchParams.ckl ?? false,
+    servesBreakfast: searchParams.bf ?? false,
+    servesLunch: searchParams.lu ?? false,
+    servesDinner: searchParams.dn ?? false,
+    servesBrunch: searchParams.br ?? false,
+    servesAlcohol: searchParams.alc ?? false,
+  }), [searchParams])
+
+  const sort = searchParams.s
+  const radius = searchParams.r
+
+  // Setter helpers that write to nuqs
+  const setFilters = useCallback((newFilters: FilterState) => {
+    setSearchParams({
+      mr: newFilters.minRating,
+      mrc: newFilters.minReviewCount,
+      pl: newFilters.priceLevels.length > 0 ? newFilters.priceLevels : null,
+      on: newFilters.openNow || null,
+      del: newFilters.delivery || null,
+      din: newFilters.dineIn || null,
+      to: newFilters.takeout || null,
+      veg: newFilters.servesVegetarianFood || null,
+      out: newFilters.outdoorSeating || null,
+      res: newFilters.reservable || null,
+      grp: newFilters.goodForGroups || null,
+      mus: newFilters.liveMusic || null,
+      ckl: newFilters.servesCocktails || null,
+      bf: newFilters.servesBreakfast || null,
+      lu: newFilters.servesLunch || null,
+      dn: newFilters.servesDinner || null,
+      br: newFilters.servesBrunch || null,
+      alc: newFilters.servesAlcohol || null,
+    })
+  }, [setSearchParams])
+
+  const setSort = useCallback((newSort: SortOption) => {
+    setSearchParams({ s: newSort })
+  }, [setSearchParams])
+
+  const setRadius = useCallback((newRadius: number) => {
+    setSearchParams({ r: newRadius })
+  }, [setSearchParams])
 
   // Request geolocation (skip if URL already had location)
   useEffect(() => {
-    if (urlState.current.location) return
+    if (urlHasLocation) return
     if (!("geolocation" in navigator)) {
       setLocationStatus("error")
       return
@@ -199,20 +233,19 @@ function PlacesExplorerInner() {
           lng: position.coords.longitude,
         }
         setGpsLocation(loc)
-        if (!urlState.current.location) {
-          setLocation(loc)
+        if (!urlHasLocation) {
           setLocationSource("gps")
-          setLocationLabel("Mevcut Konum")
         }
         setLocationStatus("granted")
       },
       (error) => {
-        if (!urlState.current.location) {
+        if (!urlHasLocation) {
           setLocationStatus(error.code === 1 ? "denied" : "error")
         }
       },
       { enableHighAccuracy: true, timeout: 15000 }
     )
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Fetch nearby places
@@ -256,12 +289,13 @@ function PlacesExplorerInner() {
         if (!response.ok) return
         const data = await response.json()
         if (data.location) {
-          setLocation({
+          setSearchParams({
             lat: data.location.latitude,
             lng: data.location.longitude,
+            q: label,
           })
           setLocationSource("search")
-          setLocationLabel(label)
+          setMobileSearchOpen(false)
           if (locationStatus !== "granted") {
             setLocationStatus("granted")
           }
@@ -270,7 +304,7 @@ function PlacesExplorerInner() {
         // Silently fail
       }
     },
-    [locationStatus, addSearch]
+    [locationStatus, addSearch, setSearchParams]
   )
 
   // Handle recent search selection
@@ -284,11 +318,11 @@ function PlacesExplorerInner() {
   // Switch back to GPS location
   const useMyLocation = useCallback(() => {
     if (gpsLocation) {
-      setLocation(gpsLocation)
+      setSearchParams({ lat: null, lng: null, q: null })
       setLocationSource("gps")
-      setLocationLabel("Mevcut Konum")
+      setMobileSearchOpen(false)
     }
-  }, [gpsLocation])
+  }, [gpsLocation, setSearchParams])
 
   // Fetch place details
   const openDetail = useCallback(async (place: Place) => {
@@ -489,7 +523,14 @@ function PlacesExplorerInner() {
         </AnimatePresence>
 
         {/* Header */}
-        <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl" style={{ borderBottom: "1px solid transparent", borderImage: "linear-gradient(to right, var(--primary), var(--secondary)) 1" }}>
+        <header
+          className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl"
+          style={{
+            borderBottom: "1px solid transparent",
+            borderImage:
+              "linear-gradient(to right, var(--primary), var(--secondary)) 1",
+          }}
+        >
           <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4">
             <div className="flex shrink-0 items-center gap-2">
               <UtensilsCrossed className="h-5 w-5 text-primary" />
@@ -549,7 +590,12 @@ function PlacesExplorerInner() {
                       initial={{ rotate: -90, scale: 0, opacity: 0 }}
                       animate={{ rotate: 0, scale: 1, opacity: 1 }}
                       exit={{ rotate: 90, scale: 0, opacity: 0 }}
-                      transition={{ type: "spring", stiffness: 250, damping: 20, duration: 0.3 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 250,
+                        damping: 20,
+                        duration: 0.3,
+                      }}
                       className="absolute inset-0 flex items-center justify-center"
                     >
                       <Moon className="h-4 w-4" />
@@ -560,7 +606,12 @@ function PlacesExplorerInner() {
                       initial={{ rotate: 90, scale: 0, opacity: 0 }}
                       animate={{ rotate: 0, scale: 1, opacity: 1 }}
                       exit={{ rotate: -90, scale: 0, opacity: 0 }}
-                      transition={{ type: "spring", stiffness: 250, damping: 20, duration: 0.3 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 250,
+                        damping: 20,
+                        duration: 0.3,
+                      }}
                       className="absolute inset-0 flex items-center justify-center"
                     >
                       <Sun className="h-4 w-4" />
@@ -696,7 +747,9 @@ function PlacesExplorerInner() {
                   filters={filters}
                   onFiltersChange={setFilters}
                   showFavoritesOnly={showFavoritesOnly}
-                  onToggleFavorites={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                  onToggleFavorites={() =>
+                    setShowFavoritesOnly(!showFavoritesOnly)
+                  }
                   favoritesCount={favoritesCount}
                 />
               </div>
@@ -717,7 +770,10 @@ function PlacesExplorerInner() {
                 >
                   {Array.from({ length: 6 }).map((_, i) =>
                     viewMode === "grid" ? (
-                      <div key={i} className="overflow-hidden rounded-xl border bg-card">
+                      <div
+                        key={i}
+                        className="overflow-hidden rounded-xl border bg-card"
+                      >
                         <Skeleton className="aspect-[16/10] w-full" />
                         <div className="space-y-2 p-4">
                           <Skeleton className="h-5 w-3/4" />
@@ -726,7 +782,10 @@ function PlacesExplorerInner() {
                         </div>
                       </div>
                     ) : (
-                      <div key={i} className="flex gap-3 rounded-xl border bg-card p-3">
+                      <div
+                        key={i}
+                        className="flex gap-3 rounded-xl border bg-card p-3"
+                      >
                         <Skeleton className="h-20 w-24 shrink-0 rounded-lg" />
                         <div className="flex-1 space-y-2">
                           <Skeleton className="h-4 w-3/4" />
@@ -748,8 +807,14 @@ function PlacesExplorerInner() {
                   {showFavoritesOnly ? (
                     <>
                       <motion.div
-                        animate={reducedMotion ? undefined : { scale: [1, 1.1, 1] }}
-                        transition={reducedMotion ? undefined : { repeat: Infinity, duration: 1.5 }}
+                        animate={
+                          reducedMotion ? undefined : { scale: [1, 1.1, 1] }
+                        }
+                        transition={
+                          reducedMotion
+                            ? undefined
+                            : { repeat: Infinity, duration: 1.5 }
+                        }
                       >
                         <Heart className="h-16 w-16 text-pink-300" />
                       </motion.div>
@@ -757,7 +822,8 @@ function PlacesExplorerInner() {
                         Henüz Favori Mekanınız Yok
                       </h3>
                       <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-                        Beğendiğiniz mekanlardaki kalp ikonuna tıklayarak favorilerinize ekleyin.
+                        Beğendiğiniz mekanlardaki kalp ikonuna tıklayarak
+                        favorilerinize ekleyin.
                       </p>
                       <Button
                         variant="outline"
@@ -771,8 +837,16 @@ function PlacesExplorerInner() {
                   ) : (
                     <>
                       <motion.div
-                        animate={reducedMotion || places.length === 0 ? undefined : { x: [-4, 4, -4] }}
-                        transition={reducedMotion || places.length === 0 ? undefined : { repeat: Infinity, duration: 1.5 }}
+                        animate={
+                          reducedMotion || places.length === 0
+                            ? undefined
+                            : { x: [-4, 4, -4] }
+                        }
+                        transition={
+                          reducedMotion || places.length === 0
+                            ? undefined
+                            : { repeat: Infinity, duration: 1.5 }
+                        }
                       >
                         <SearchX className="h-16 w-16 text-muted-foreground/30" />
                       </motion.div>
@@ -787,7 +861,11 @@ function PlacesExplorerInner() {
                           : "Aktif filtrelere uygun mekan bulunamadı. Filtreleri genişletmeyi deneyin."}
                       </p>
                       {places.length === 0 ? (
-                        <Button onClick={fetchPlaces} className="mt-4" size="sm">
+                        <Button
+                          onClick={fetchPlaces}
+                          className="mt-4"
+                          size="sm"
+                        >
                           <RefreshCw className="mr-2 h-4 w-4" />
                           Tekrar Ara
                         </Button>
@@ -811,7 +889,10 @@ function PlacesExplorerInner() {
                     hidden: { opacity: 0 },
                     show: {
                       opacity: 1,
-                      transition: { staggerChildren: 0.08, delayChildren: 0.04 },
+                      transition: {
+                        staggerChildren: 0.08,
+                        delayChildren: 0.04,
+                      },
                     },
                   }}
                   initial="hidden"
@@ -836,7 +917,10 @@ function PlacesExplorerInner() {
                     hidden: { opacity: 0 },
                     show: {
                       opacity: 1,
-                      transition: { staggerChildren: 0.05, delayChildren: 0.03 },
+                      transition: {
+                        staggerChildren: 0.05,
+                        delayChildren: 0.03,
+                      },
                     },
                   }}
                   initial="hidden"
