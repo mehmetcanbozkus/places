@@ -202,6 +202,7 @@ const [detailPlace, setDetailPlace] = useState<Place | null>(null)
 const [detailOpen, setDetailOpen] = useState(false)
 const [detailLoading, setDetailLoading] = useState(false)
 const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
 const [viewMode, setViewMode] = useState<ViewMode>("grid")
 const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
 ```
@@ -502,13 +503,9 @@ git commit -m "feat: add place detail URL state with browser back support"
 - Modify: `components/places-explorer.tsx:497-689` (header section)
 - Modify: `components/location-search.tsx`
 
-- [ ] **Step 1: Add mobile search state to PlacesExplorer**
+- [ ] **Step 1: Verify mobile search state exists**
 
-Add a new state variable:
-
-```ts
-const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
-```
+`mobileSearchOpen` state was already declared in Task 3 Step 2. Verify it exists before proceeding.
 
 - [ ] **Step 2: Add `Search` icon import**
 
