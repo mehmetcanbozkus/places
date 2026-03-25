@@ -17,43 +17,52 @@ export function usePullToRefresh({
   const [isRefreshing, setIsRefreshing] = useState(false)
   const startY = useRef(0)
   const isPulling = useRef(false)
+  const pullDistanceRef = useRef(0)
+  const isRefreshingRef = useRef(false)
+  const onRefreshRef = useRef(onRefresh)
+  onRefreshRef.current = onRefresh
 
   const handleRefresh = useCallback(async () => {
+    isRefreshingRef.current = true
     setIsRefreshing(true)
     try {
-      await onRefresh()
+      await onRefreshRef.current()
     } finally {
+      isRefreshingRef.current = false
       setIsRefreshing(false)
+      pullDistanceRef.current = 0
       setPullDistance(0)
     }
-  }, [onRefresh])
+  }, [])
 
   useEffect(() => {
     const onTouchStart = (e: TouchEvent) => {
-      if (window.scrollY > 0 || isRefreshing) return
+      if (window.scrollY > 0 || isRefreshingRef.current) return
       startY.current = e.touches[0].clientY
       isPulling.current = true
     }
 
     const onTouchMove = (e: TouchEvent) => {
-      if (!isPulling.current || isRefreshing) return
+      if (!isPulling.current || isRefreshingRef.current) return
       const diff = e.touches[0].clientY - startY.current
       if (diff < 0) {
         isPulling.current = false
+        pullDistanceRef.current = 0
         setPullDistance(0)
         return
       }
-      // Diminishing returns as you pull further
       const distance = Math.min(diff * 0.5, maxPull)
+      pullDistanceRef.current = distance
       setPullDistance(distance)
     }
 
     const onTouchEnd = () => {
       if (!isPulling.current) return
       isPulling.current = false
-      if (pullDistance >= threshold) {
+      if (pullDistanceRef.current >= threshold) {
         handleRefresh()
       } else {
+        pullDistanceRef.current = 0
         setPullDistance(0)
       }
     }
@@ -67,7 +76,7 @@ export function usePullToRefresh({
       window.removeEventListener("touchmove", onTouchMove)
       window.removeEventListener("touchend", onTouchEnd)
     }
-  }, [isRefreshing, pullDistance, threshold, maxPull, handleRefresh])
+  }, [threshold, maxPull, handleRefresh])
 
   return { pullDistance, isRefreshing }
 }
