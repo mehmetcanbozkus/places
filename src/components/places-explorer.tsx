@@ -73,7 +73,10 @@ function PlacesExplorerInner() {
   const urlHasLocation = searchParams.lat !== null && searchParams.lng !== null
 
   // Local state that is NOT in URL
-  const [gpsLocation, setGpsLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [gpsLocation, setGpsLocation] = useState<{
+    lat: number
+    lng: number
+  } | null>(null)
   const [locationSource, setLocationSource] = useState<LocationSource>(
     urlHasLocation ? "search" : "gps"
   )
@@ -156,70 +159,87 @@ function PlacesExplorerInner() {
 
   // Derive current location (from URL for search, from GPS state for GPS)
   const location = useMemo(() => {
-    if (locationSource === "search" && searchParams.lat !== null && searchParams.lng !== null) {
+    if (
+      locationSource === "search" &&
+      searchParams.lat !== null &&
+      searchParams.lng !== null
+    ) {
       return { lat: searchParams.lat, lng: searchParams.lng }
     }
     return gpsLocation
   }, [locationSource, searchParams.lat, searchParams.lng, gpsLocation])
 
-  const locationLabel = searchParams.q ?? (locationSource === "gps" ? "Mevcut Konum" : "")
+  const locationLabel =
+    searchParams.q ?? (locationSource === "gps" ? "Mevcut Konum" : "")
 
   // Derive FilterState from URL params
-  const filters: FilterState = useMemo(() => ({
-    minRating: searchParams.mr,
-    minReviewCount: searchParams.mrc,
-    priceLevels: (searchParams.pl ?? []) as PriceLevel[],
-    openNow: searchParams.on ?? false,
-    delivery: searchParams.del ?? false,
-    dineIn: searchParams.din ?? false,
-    takeout: searchParams.to ?? false,
-    servesVegetarianFood: searchParams.veg ?? false,
-    outdoorSeating: searchParams.out ?? false,
-    reservable: searchParams.res ?? false,
-    goodForGroups: searchParams.grp ?? false,
-    liveMusic: searchParams.mus ?? false,
-    servesCocktails: searchParams.ckl ?? false,
-    servesBreakfast: searchParams.bf ?? false,
-    servesLunch: searchParams.lu ?? false,
-    servesDinner: searchParams.dn ?? false,
-    servesBrunch: searchParams.br ?? false,
-    servesAlcohol: searchParams.alc ?? false,
-  }), [searchParams])
+  const filters: FilterState = useMemo(
+    () => ({
+      minRating: searchParams.mr,
+      minReviewCount: searchParams.mrc,
+      priceLevels: (searchParams.pl ?? []) as PriceLevel[],
+      openNow: searchParams.on ?? false,
+      delivery: searchParams.del ?? false,
+      dineIn: searchParams.din ?? false,
+      takeout: searchParams.to ?? false,
+      servesVegetarianFood: searchParams.veg ?? false,
+      outdoorSeating: searchParams.out ?? false,
+      reservable: searchParams.res ?? false,
+      goodForGroups: searchParams.grp ?? false,
+      liveMusic: searchParams.mus ?? false,
+      servesCocktails: searchParams.ckl ?? false,
+      servesBreakfast: searchParams.bf ?? false,
+      servesLunch: searchParams.lu ?? false,
+      servesDinner: searchParams.dn ?? false,
+      servesBrunch: searchParams.br ?? false,
+      servesAlcohol: searchParams.alc ?? false,
+    }),
+    [searchParams]
+  )
 
   const sort = searchParams.s
   const radius = searchParams.r
 
   // Setter helpers that write to nuqs
-  const setFilters = useCallback((newFilters: FilterState) => {
-    setSearchParams({
-      mr: newFilters.minRating,
-      mrc: newFilters.minReviewCount,
-      pl: newFilters.priceLevels.length > 0 ? newFilters.priceLevels : null,
-      on: newFilters.openNow || null,
-      del: newFilters.delivery || null,
-      din: newFilters.dineIn || null,
-      to: newFilters.takeout || null,
-      veg: newFilters.servesVegetarianFood || null,
-      out: newFilters.outdoorSeating || null,
-      res: newFilters.reservable || null,
-      grp: newFilters.goodForGroups || null,
-      mus: newFilters.liveMusic || null,
-      ckl: newFilters.servesCocktails || null,
-      bf: newFilters.servesBreakfast || null,
-      lu: newFilters.servesLunch || null,
-      dn: newFilters.servesDinner || null,
-      br: newFilters.servesBrunch || null,
-      alc: newFilters.servesAlcohol || null,
-    })
-  }, [setSearchParams])
+  const setFilters = useCallback(
+    (newFilters: FilterState) => {
+      setSearchParams({
+        mr: newFilters.minRating,
+        mrc: newFilters.minReviewCount,
+        pl: newFilters.priceLevels.length > 0 ? newFilters.priceLevels : null,
+        on: newFilters.openNow || null,
+        del: newFilters.delivery || null,
+        din: newFilters.dineIn || null,
+        to: newFilters.takeout || null,
+        veg: newFilters.servesVegetarianFood || null,
+        out: newFilters.outdoorSeating || null,
+        res: newFilters.reservable || null,
+        grp: newFilters.goodForGroups || null,
+        mus: newFilters.liveMusic || null,
+        ckl: newFilters.servesCocktails || null,
+        bf: newFilters.servesBreakfast || null,
+        lu: newFilters.servesLunch || null,
+        dn: newFilters.servesDinner || null,
+        br: newFilters.servesBrunch || null,
+        alc: newFilters.servesAlcohol || null,
+      })
+    },
+    [setSearchParams]
+  )
 
-  const setSort = useCallback((newSort: SortOption) => {
-    setSearchParams({ s: newSort })
-  }, [setSearchParams])
+  const setSort = useCallback(
+    (newSort: SortOption) => {
+      setSearchParams({ s: newSort })
+    },
+    [setSearchParams]
+  )
 
-  const setRadius = useCallback((newRadius: number) => {
-    setSearchParams({ r: newRadius })
-  }, [setSearchParams])
+  const setRadius = useCallback(
+    (newRadius: number) => {
+      setSearchParams({ r: newRadius })
+    },
+    [setSearchParams]
+  )
 
   // Request geolocation (skip if URL already had location)
   useEffect(() => {
@@ -247,7 +267,7 @@ function PlacesExplorerInner() {
       },
       { enableHighAccuracy: true, timeout: 15000 }
     )
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Fetch nearby places
@@ -327,23 +347,26 @@ function PlacesExplorerInner() {
   }, [gpsLocation, setSearchParams])
 
   // Fetch place details
-  const openDetail = useCallback(async (place: Place) => {
-    setDetailPlace(place)
-    setDetailOpen(true)
-    setDetailLoading(true)
-    setSearchParams({ place: place.id }, { history: "push" })
-    try {
-      const response = await fetch(`/api/places/${place.id}`)
-      if (response.ok) {
-        const data = await response.json()
-        setDetailPlace(data)
+  const openDetail = useCallback(
+    async (place: Place) => {
+      setDetailPlace(place)
+      setDetailOpen(true)
+      setDetailLoading(true)
+      setSearchParams({ place: place.id }, { history: "push" })
+      try {
+        const response = await fetch(`/api/places/${place.id}`)
+        if (response.ok) {
+          const data = await response.json()
+          setDetailPlace(data)
+        }
+      } catch {
+        // Keep basic place info as fallback
+      } finally {
+        setDetailLoading(false)
       }
-    } catch {
-      // Keep basic place info as fallback
-    } finally {
-      setDetailLoading(false)
-    }
-  }, [setSearchParams])
+    },
+    [setSearchParams]
+  )
 
   const closeDetail = useCallback(() => {
     setDetailOpen(false)
@@ -351,11 +374,14 @@ function PlacesExplorerInner() {
     setSearchParams({ place: null }, { history: "push" })
   }, [setSearchParams])
 
-  const handleDetailOpenChange = useCallback((open: boolean) => {
-    if (!open) {
-      closeDetail()
-    }
-  }, [closeDetail])
+  const handleDetailOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open) {
+        closeDetail()
+      }
+    },
+    [closeDetail]
+  )
 
   // Restore place detail from URL param (cold start or browser back)
   useEffect(() => {
@@ -796,9 +822,7 @@ function PlacesExplorerInner() {
             filters={filters}
             onFiltersChange={setFilters}
             showFavoritesOnly={showFavoritesOnly}
-            onToggleFavorites={() =>
-              setShowFavoritesOnly(!showFavoritesOnly)
-            }
+            onToggleFavorites={() => setShowFavoritesOnly(!showFavoritesOnly)}
             favoritesCount={favoritesCount}
           />
         )}
