@@ -134,7 +134,7 @@ export function PlaceCard({
         )}
 
         {/* Gradient overlay on photo */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
 
         {/* Open/Closed badge with neon glow */}
         {isOpen !== undefined && (
@@ -192,7 +192,12 @@ export function PlaceCard({
 
         {/* Place name overlay on photo */}
         <div className="absolute right-3 bottom-2 left-3">
-          <h3 className="truncate text-sm font-semibold text-white drop-shadow-md">
+          <h3
+            className="truncate text-sm font-semibold text-white"
+            style={{
+              textShadow: "0 1px 3px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.5)",
+            }}
+          >
             {place.displayName.text}
           </h3>
         </div>

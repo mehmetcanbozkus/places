@@ -116,29 +116,31 @@ export function PlaceListItem({
           <h3 className="truncate text-sm leading-tight font-semibold">
             {place.displayName.text}
           </h3>
-          <button
-            onClick={handleShare}
-            className="shrink-0 rounded-full p-1 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-muted"
-          >
-            <Share2 className="h-3.5 w-3.5 text-muted-foreground" />
-          </button>
-          <motion.button
-            onClick={handleFavorite}
-            whileTap={{ scale: 1.3 }}
-            transition={{ type: "spring", stiffness: 400, damping: 10 }}
-            className={`shrink-0 rounded-full p-1 transition-opacity ${
-              isFavorite
-                ? "text-pink-500"
-                : "text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-muted"
-            }`}
-            aria-label={isFavorite ? "Favorilerden çıkar" : "Favorilere ekle"}
-            aria-pressed={isFavorite}
-          >
-            <Heart
-              className="h-3.5 w-3.5"
-              fill={isFavorite ? "currentColor" : "none"}
-            />
-          </motion.button>
+          <div className="flex shrink-0 items-center gap-0.5">
+            <button
+              onClick={handleShare}
+              className="shrink-0 rounded-full p-1 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-muted"
+            >
+              <Share2 className="h-3.5 w-3.5 text-muted-foreground" />
+            </button>
+            <motion.button
+              onClick={handleFavorite}
+              whileTap={{ scale: 1.3 }}
+              transition={{ type: "spring", stiffness: 400, damping: 10 }}
+              className={`shrink-0 rounded-full p-1 transition-opacity ${
+                isFavorite
+                  ? "text-pink-500"
+                  : "text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-muted"
+              }`}
+              aria-label={isFavorite ? "Favorilerden çıkar" : "Favorilere ekle"}
+              aria-pressed={isFavorite}
+            >
+              <Heart
+                className="h-3.5 w-3.5"
+                fill={isFavorite ? "currentColor" : "none"}
+              />
+            </motion.button>
+          </div>
         </div>
 
         {place.primaryTypeDisplayName && (

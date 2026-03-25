@@ -21,6 +21,7 @@ import { LocationSearch } from "./location-search"
 import { QuickFilters } from "./quick-filters"
 import { ScrollToTop } from "./scroll-to-top"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -51,6 +52,7 @@ import {
   Heart,
   Sun,
   Moon,
+  X,
 } from "lucide-react"
 import type { Place, FilterState, SortOption, PriceLevel } from "@/lib/types"
 import {
@@ -61,6 +63,7 @@ import {
 import { useRecentSearches } from "@/hooks/use-recent-searches"
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh"
 import { useFavorites } from "@/hooks/use-favorites"
+import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { useTheme } from "next-themes"
 
 type LocationSource = "gps" | "search"
@@ -92,6 +95,8 @@ function PlacesExplorerInner() {
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>("grid")
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
+  const [placeSearch, setPlaceSearch] = useState("")
+  const debouncedPlaceSearch = useDebouncedValue(placeSearch, 300)
 
   const {
     searches: recentSearches,
@@ -415,7 +420,21 @@ function PlacesExplorerInner() {
 
   // Filter and sort
   const filteredPlaces = useMemo(() => {
+    const searchLower = debouncedPlaceSearch.trim().toLowerCase()
     const result = places.filter((place) => {
+      // Text search filter — always applies
+      if (searchLower) {
+        const name = place.displayName.text.toLowerCase()
+        const type = place.primaryTypeDisplayName?.text?.toLowerCase() || ""
+        const address = place.shortFormattedAddress?.toLowerCase() || ""
+        if (
+          !name.includes(searchLower) &&
+          !type.includes(searchLower) &&
+          !address.includes(searchLower)
+        )
+          return false
+      }
+
       // When showing favorites only, skip ALL other filters — show every favorited place
       if (showFavoritesOnly) {
         return favorites.includes(place.id)
@@ -482,7 +501,15 @@ function PlacesExplorerInner() {
     })
 
     return result
-  }, [places, filters, sort, location, showFavoritesOnly, favorites])
+  }, [
+    places,
+    filters,
+    sort,
+    location,
+    showFavoritesOnly,
+    favorites,
+    debouncedPlaceSearch,
+  ])
 
   const activeFilterCount = countActiveFilters(filters)
 
@@ -627,12 +654,33 @@ function PlacesExplorerInner() {
 
                 {/* Location badge */}
                 {locationLabel && (
-                  <div className="flex shrink-0 items-center gap-1.5 rounded-full border bg-muted/50 px-3 py-1 text-xs text-muted-foreground">
-                    <MapPin className="h-3 w-3 shrink-0" />
+                  <button
+                    onClick={
+                      locationSource === "search" && gpsLocation
+                        ? useMyLocation
+                        : undefined
+                    }
+                    disabled={!(locationSource === "search" && gpsLocation)}
+                    className={`flex shrink-0 items-center gap-1.5 rounded-full border bg-muted/50 px-3 py-1 text-xs text-muted-foreground transition-colors ${
+                      locationSource === "search" && gpsLocation
+                        ? "cursor-pointer hover:border-primary/50 hover:bg-muted"
+                        : "cursor-default"
+                    }`}
+                    title={
+                      locationSource === "search" && gpsLocation
+                        ? "Mevcut konuma dön"
+                        : undefined
+                    }
+                  >
+                    {locationSource === "search" && gpsLocation ? (
+                      <LocateFixed className="h-3 w-3 shrink-0" />
+                    ) : (
+                      <MapPin className="h-3 w-3 shrink-0" />
+                    )}
                     <span className="max-w-[120px] truncate sm:max-w-[200px]">
                       {locationLabel}
                     </span>
-                  </div>
+                  </button>
                 )}
 
                 {/* Desktop search — hidden on mobile */}
@@ -735,20 +783,6 @@ function PlacesExplorerInner() {
                     </AnimatePresence>
                   </Button>
 
-                  {/* Refresh */}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={fetchPlaces}
-                    disabled={loading}
-                    className="h-8 w-8"
-                    title="Yenile"
-                  >
-                    <RefreshCw
-                      className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
-                    />
-                  </Button>
-
                   {/* Favorites counter */}
                   {favoritesCount > 0 && (
                     <motion.button
@@ -832,6 +866,25 @@ function PlacesExplorerInner() {
             showFavoritesOnly={showFavoritesOnly}
             onToggleFavorites={() => setShowFavoritesOnly(!showFavoritesOnly)}
             favoritesCount={favoritesCount}
+            rightSlot={
+              <div className="relative">
+                <Search className="absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={placeSearch}
+                  onChange={(e) => setPlaceSearch(e.target.value)}
+                  placeholder="Filtrele..."
+                  className="h-8 w-36 pr-7 pl-8 text-xs sm:w-44"
+                />
+                {placeSearch && (
+                  <button
+                    onClick={() => setPlaceSearch("")}
+                    className="absolute top-1/2 right-2.5 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
+            }
           />
         )}
 

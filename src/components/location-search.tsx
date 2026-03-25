@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
+import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { motion, AnimatePresence } from "motion/react"
 import { Input } from "@/components/ui/input"
 import {
@@ -79,13 +80,13 @@ export function LocationSearch({
   onRecentClear,
 }: LocationSearchProps) {
   const [query, setQuery] = useState("")
+  const debouncedQuery = useDebouncedValue(query, 300)
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(-1)
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null)
 
   // Fetch autocomplete suggestions
   const fetchSuggestions = useCallback(
@@ -151,21 +152,12 @@ export function LocationSearch({
 
   // Debounced search
   useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-
-    if (query.trim().length < 2) {
+    if (debouncedQuery.trim().length < 2) {
       setSuggestions([])
       return
     }
-
-    debounceRef.current = setTimeout(() => {
-      fetchSuggestions(query)
-    }, 300)
-
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-    }
-  }, [query, fetchSuggestions])
+    fetchSuggestions(debouncedQuery)
+  }, [debouncedQuery, fetchSuggestions])
 
   // Close on outside click
   useEffect(() => {
@@ -320,15 +312,23 @@ export function LocationSearch({
                           {recent.label}
                         </span>
                         {onRecentRemove && (
-                          <button
+                          <span
+                            role="button"
+                            tabIndex={0}
                             onClick={(e) => {
                               e.stopPropagation()
                               onRecentRemove(recent.placeId)
                             }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.stopPropagation()
+                                onRecentRemove(recent.placeId)
+                              }
+                            }}
                             className="shrink-0 rounded p-0.5 hover:bg-muted"
                           >
                             <X className="h-3 w-3 text-muted-foreground" />
-                          </button>
+                          </span>
                         )}
                       </button>
                     </motion.div>

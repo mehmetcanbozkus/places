@@ -24,6 +24,7 @@ interface QuickFiltersProps {
   showFavoritesOnly?: boolean
   onToggleFavorites?: () => void
   favoritesCount?: number
+  rightSlot?: React.ReactNode
 }
 
 const CHIPS: {
@@ -121,61 +122,65 @@ export function QuickFilters({
   showFavoritesOnly = false,
   onToggleFavorites,
   favoritesCount = 0,
+  rightSlot,
 }: QuickFiltersProps) {
   return (
     <div
       className="sticky top-[56px] z-30 bg-background/80 px-4 py-2 backdrop-blur-xl lg:px-6"
       style={{ scrollbarWidth: "none" }}
     >
-      <div
-        className="scrollbar-hide mx-auto flex max-w-7xl gap-2 overflow-x-auto"
-        style={{ scrollbarWidth: "none" }}
-      >
-        {/* Favorites chip — separate from FilterState */}
-        {favoritesCount > 0 && (
-          <motion.div whileTap={{ scale: 0.95 }} className="shrink-0">
-            <Badge
-              variant={showFavoritesOnly ? "default" : "outline"}
-              className={`cursor-pointer gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors transition-shadow duration-200 ${
-                showFavoritesOnly
-                  ? "bg-[var(--neon-favorite)] text-white shadow-[0_0_12px_var(--neon-favorite)] hover:bg-[var(--neon-favorite)]"
-                  : "hover:shadow-sm"
-              }`}
-              onClick={onToggleFavorites}
-            >
-              <Heart
-                className="h-3 w-3"
-                fill={showFavoritesOnly ? "currentColor" : "none"}
-              />
-              Favoriler ({favoritesCount})
-            </Badge>
-          </motion.div>
-        )}
-
-        {CHIPS.map((chip) => {
-          const active = chip.isActive(filters)
-          const Icon = chip.icon
-          return (
-            <motion.div
-              key={chip.key}
-              whileTap={{ scale: 0.95 }}
-              className="shrink-0"
-            >
+      <div className="mx-auto flex max-w-7xl items-center gap-3">
+        <div
+          className="scrollbar-hide flex min-w-0 flex-1 gap-2 overflow-x-auto"
+          style={{ scrollbarWidth: "none" }}
+        >
+          {/* Favorites chip — separate from FilterState */}
+          {favoritesCount > 0 && (
+            <motion.div whileTap={{ scale: 0.95 }} className="shrink-0">
               <Badge
-                variant={active ? "default" : "outline"}
+                variant={showFavoritesOnly ? "default" : "outline"}
                 className={`cursor-pointer gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors transition-shadow duration-200 ${
-                  active
-                    ? "shadow-[0_0_10px_var(--primary)] hover:shadow-[0_0_14px_var(--primary)]"
+                  showFavoritesOnly
+                    ? "bg-[var(--neon-favorite)] text-white shadow-[0_0_12px_var(--neon-favorite)] hover:bg-[var(--neon-favorite)]"
                     : "hover:shadow-sm"
                 }`}
-                onClick={() => onFiltersChange(chip.toggle(filters))}
+                onClick={onToggleFavorites}
               >
-                <Icon className="h-3 w-3" />
-                {chip.label}
+                <Heart
+                  className="h-3 w-3"
+                  fill={showFavoritesOnly ? "currentColor" : "none"}
+                />
+                Favoriler ({favoritesCount})
               </Badge>
             </motion.div>
-          )
-        })}
+          )}
+
+          {CHIPS.map((chip) => {
+            const active = chip.isActive(filters)
+            const Icon = chip.icon
+            return (
+              <motion.div
+                key={chip.key}
+                whileTap={{ scale: 0.95 }}
+                className="shrink-0"
+              >
+                <Badge
+                  variant={active ? "default" : "outline"}
+                  className={`cursor-pointer gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors transition-shadow duration-200 ${
+                    active
+                      ? "shadow-[0_0_10px_var(--primary)] hover:shadow-[0_0_14px_var(--primary)]"
+                      : "hover:shadow-sm"
+                  }`}
+                  onClick={() => onFiltersChange(chip.toggle(filters))}
+                >
+                  <Icon className="h-3 w-3" />
+                  {chip.label}
+                </Badge>
+              </motion.div>
+            )
+          })}
+        </div>
+        {rightSlot && <div className="shrink-0">{rightSlot}</div>}
       </div>
     </div>
   )

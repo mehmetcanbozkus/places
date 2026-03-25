@@ -533,7 +533,7 @@ export function PlaceDetailSheet({
                       {(place.googleMapsLinks?.writeAReviewUri ||
                         place.googleMapsLinks?.reviewsUri ||
                         place.googleMapsLinks?.photosUri) && (
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex gap-2">
                           {place.googleMapsLinks?.writeAReviewUri && (
                             <Button
                               variant="ghost"
