@@ -32,7 +32,7 @@ import {
   Martini,
 } from "lucide-react"
 import type { FilterState, PriceLevel, SortOption } from "@/lib/types"
-import { DEFAULT_FILTERS } from "@/lib/types"
+import { DEFAULT_FILTERS } from "@/lib/constants"
 
 interface FiltersPanelProps {
   filters: FilterState

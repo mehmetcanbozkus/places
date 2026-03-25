@@ -50,13 +50,13 @@ import {
   CarFront,
 } from "lucide-react"
 import type { Place } from "@/lib/types"
+import { PRICE_LEVEL_MAP } from "@/lib/constants"
 import {
   getPhotoUrl,
-  PRICE_LEVEL_MAP,
   formatReviewCount,
   sharePlace,
   getRatingColor,
-} from "@/lib/types"
+} from "@/lib/place-utils"
 
 interface PlaceDetailSheetProps {
   place: Place | null

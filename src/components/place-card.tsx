@@ -17,17 +17,16 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { BlurImage } from "./blur-image"
 import type { Place } from "@/lib/types"
+import { PRICE_LEVEL_SYMBOL } from "@/lib/constants"
+import { haversineDistance, formatDistance } from "@/lib/geo"
 import {
   getPhotoUrl,
-  PRICE_LEVEL_SYMBOL,
-  formatDistance,
   formatReviewCount,
-  haversineDistance,
   sharePlace,
   getRatingColor,
   getCategoryColor,
   getRatingGlow,
-} from "@/lib/types"
+} from "@/lib/place-utils"
 
 interface PlaceCardProps {
   place: Place

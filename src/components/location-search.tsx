@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
+import { formatDistance } from "@/lib/geo"
 import { motion, AnimatePresence } from "motion/react"
 import { Input } from "@/components/ui/input"
 import {
@@ -61,11 +62,6 @@ function getPlaceIcon(types?: string[]) {
   return MapPin
 }
 
-function formatDistance(meters?: number) {
-  if (!meters) return null
-  if (meters < 1000) return `${Math.round(meters)}m`
-  return `${(meters / 1000).toFixed(1)}km`
-}
 
 export function LocationSearch({
   onSelect,
@@ -341,7 +337,7 @@ export function LocationSearch({
 
               {suggestions.map((suggestion, i) => {
                 const Icon = getPlaceIcon(suggestion.types)
-                const dist = formatDistance(suggestion.distanceMeters)
+                const dist = suggestion.distanceMeters ? formatDistance(suggestion.distanceMeters) : null
                 const isActive = selectedIndex === i
 
                 return (

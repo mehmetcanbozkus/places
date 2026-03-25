@@ -5,7 +5,7 @@ import Image from "next/image"
 import { motion, AnimatePresence, type PanInfo } from "motion/react"
 import { X, ChevronLeft, ChevronRight, Download } from "lucide-react"
 import type { PlacePhoto } from "@/lib/types"
-import { getPhotoUrl } from "@/lib/types"
+import { getPhotoUrl } from "@/lib/place-utils"
 
 interface PhotoLightboxProps {
   photos: PlacePhoto[]

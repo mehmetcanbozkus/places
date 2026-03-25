@@ -15,17 +15,16 @@ import {
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import type { Place } from "@/lib/types"
+import { PRICE_LEVEL_SYMBOL } from "@/lib/constants"
+import { haversineDistance, formatDistance } from "@/lib/geo"
 import {
   getPhotoUrl,
-  PRICE_LEVEL_SYMBOL,
-  formatDistance,
   formatReviewCount,
-  haversineDistance,
   sharePlace,
   getRatingColor,
   getCategoryColor,
   getRatingGlow,
-} from "@/lib/types"
+} from "@/lib/place-utils"
 
 interface PlaceListItemProps {
   place: Place

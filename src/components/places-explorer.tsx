@@ -59,11 +59,9 @@ import {
   X,
 } from "lucide-react"
 import type { Place, FilterState, SortOption, PriceLevel } from "@/lib/types"
-import {
-  DEFAULT_FILTERS,
-  haversineDistance,
-  countActiveFilters,
-} from "@/lib/types"
+import { DEFAULT_FILTERS } from "@/lib/constants"
+import { haversineDistance } from "@/lib/geo"
+import { countActiveFilters } from "@/lib/place-utils"
 import { useRecentSearches } from "@/hooks/use-recent-searches"
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh"
 import { useFavorites } from "@/hooks/use-favorites"
