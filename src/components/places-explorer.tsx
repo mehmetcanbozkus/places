@@ -473,32 +473,33 @@ function PlacesExplorerInner() {
       return true
     })
 
-    result.sort((a, b) => {
-      switch (sort) {
-        case "rating":
-          return (b.rating || 0) - (a.rating || 0)
-        case "reviewCount":
-          return (b.userRatingCount || 0) - (a.userRatingCount || 0)
-        case "distance":
-          if (!location) return 0
-          return (
-            haversineDistance(
-              location.lat,
-              location.lng,
-              a.location?.latitude || 0,
-              a.location?.longitude || 0
-            ) -
-            haversineDistance(
-              location.lat,
-              location.lng,
-              b.location?.latitude || 0,
-              b.location?.longitude || 0
-            )
+    // Pre-compute distances if sorting by distance
+    if (sort === "distance" && location) {
+      const distanceMap = new Map<string, number>()
+      for (const place of result) {
+        distanceMap.set(
+          place.id,
+          haversineDistance(
+            location.lat,
+            location.lng,
+            place.location?.latitude || 0,
+            place.location?.longitude || 0
           )
-        default:
-          return 0
+        )
       }
-    })
+      result.sort((a, b) => distanceMap.get(a.id)! - distanceMap.get(b.id)!)
+    } else {
+      result.sort((a, b) => {
+        switch (sort) {
+          case "rating":
+            return (b.rating || 0) - (a.rating || 0)
+          case "reviewCount":
+            return (b.userRatingCount || 0) - (a.userRatingCount || 0)
+          default:
+            return 0
+        }
+      })
+    }
 
     return result
   }, [
