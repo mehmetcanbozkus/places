@@ -345,6 +345,17 @@ export function formatReviewCount(count: number): string {
   return count.toString()
 }
 
+export function buildPlaceUrl(place: Place): string {
+  const params = new URLSearchParams()
+  params.set("place", place.id)
+  if (place.location) {
+    params.set("lat", String(place.location.latitude))
+    params.set("lng", String(place.location.longitude))
+  }
+  const origin = typeof window !== "undefined" ? window.location.origin : ""
+  return `${origin}/?${params.toString()}`
+}
+
 export async function sharePlace(
   place: Place
 ): Promise<"shared" | "copied" | "failed"> {
@@ -356,12 +367,13 @@ export async function sharePlace(
     ? ` · ${PRICE_LEVEL_MAP[place.priceLevel]}`
     : ""
   const address = place.shortFormattedAddress || place.formattedAddress || ""
+  const url = buildPlaceUrl(place)
 
   const lines = [
     place.displayName.text,
     [rating, reviews, price].filter(Boolean).join(" "),
     address,
-    place.googleMapsUri || "",
+    url,
   ].filter(Boolean)
 
   const text = lines.join("\n")
@@ -372,7 +384,7 @@ export async function sharePlace(
       await navigator.share({
         title: place.displayName.text,
         text: text,
-        url: place.googleMapsUri || undefined,
+        url,
       })
       return "shared"
     } catch (e) {

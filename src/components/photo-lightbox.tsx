@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import Image from "next/image"
 import { motion, AnimatePresence, type PanInfo } from "motion/react"
 import { X, ChevronLeft, ChevronRight, Download } from "lucide-react"
 import type { PlacePhoto } from "@/lib/types"
@@ -22,14 +23,16 @@ export function PhotoLightbox({
   const [currentIndex, setCurrentIndex] = useState(initialIndex)
   const [direction, setDirection] = useState(0)
   const [isZoomed, setIsZoomed] = useState(false)
+  const [prevOpen, setPrevOpen] = useState(open)
 
   // Sync initial index when opening
-  useEffect(() => {
-    if (open) {
-      setCurrentIndex(initialIndex)
-      setIsZoomed(false)
-    }
-  }, [open, initialIndex])
+  if (open && !prevOpen) {
+    setPrevOpen(open)
+    setCurrentIndex(initialIndex)
+    setIsZoomed(false)
+  } else if (open !== prevOpen) {
+    setPrevOpen(open)
+  }
 
   const navigate = useCallback(
     (dir: 1 | -1) => {
@@ -171,13 +174,16 @@ export function PhotoLightbox({
                 className="absolute flex h-full w-full items-center justify-center"
                 onClick={() => setIsZoomed(!isZoomed)}
               >
-                <img
+                <Image
                   src={getPhotoUrl(photos[currentIndex].name, 1200)}
                   alt={`Fotoğraf ${currentIndex + 1}`}
-                  className={`max-h-full max-w-full object-contain transition-transform duration-300 select-none ${
+                  fill
+                  sizes="100vw"
+                  className={`object-contain transition-transform duration-300 select-none ${
                     isZoomed ? "scale-150 cursor-zoom-out" : "cursor-zoom-in"
                   }`}
                   draggable={false}
+                  unoptimized
                 />
               </motion.div>
             </AnimatePresence>
@@ -212,17 +218,20 @@ export function PhotoLightbox({
                       setDirection(i > currentIndex ? 1 : -1)
                       setCurrentIndex(i)
                     }}
-                    className={`h-12 w-16 flex-shrink-0 overflow-hidden rounded-md transition-all ${
+                    className={`relative h-12 w-16 flex-shrink-0 overflow-hidden rounded-md transition-all ${
                       i === currentIndex
                         ? "ring-2 ring-white ring-offset-1 ring-offset-black"
                         : "opacity-50 hover:opacity-80"
                     }`}
                   >
-                    <img
+                    <Image
                       src={getPhotoUrl(photo.name, 100)}
                       alt={`Küçük resim ${i + 1}`}
-                      className="h-full w-full object-cover"
+                      fill
+                      sizes="64px"
+                      className="object-cover"
                       draggable={false}
+                      unoptimized
                     />
                   </button>
                 ))}

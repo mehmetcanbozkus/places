@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import { Skeleton } from "@/components/ui/skeleton"
 
 interface BlurImageProps {
@@ -24,11 +25,14 @@ export function BlurImage({
     <div className={`relative overflow-hidden ${className}`}>
       {/* Placeholder */}
       {placeholderSrc && (
-        <img
+        <Image
           src={placeholderSrc}
           alt=""
           aria-hidden
-          className="absolute inset-0 h-full w-full scale-110 object-cover blur-xl"
+          fill
+          sizes="100%"
+          className="scale-110 object-cover blur-xl"
+          unoptimized
         />
       )}
 
@@ -38,14 +42,17 @@ export function BlurImage({
       )}
 
       {/* Main image */}
-      <img
+      <Image
         src={src}
         alt={alt}
+        fill
+        sizes="100%"
         loading={loading}
         onLoad={() => setLoaded(true)}
-        className={`relative h-full w-full object-cover transition-opacity duration-500 ${
+        className={`object-cover transition-opacity duration-500 ${
           loaded ? "opacity-100" : "opacity-0"
         }`}
+        unoptimized
       />
     </div>
   )

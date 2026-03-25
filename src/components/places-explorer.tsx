@@ -109,6 +109,8 @@ function PlacesExplorerInner() {
   const reducedMotion = useReducedMotion()
   const { resolvedTheme, setTheme } = useTheme()
   const themeToggleRef = useRef<HTMLButtonElement>(null)
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
 
   const toggleTheme = useCallback(() => {
     const newTheme = resolvedTheme === "dark" ? "light" : "dark"
@@ -559,7 +561,7 @@ function PlacesExplorerInner() {
 
   return (
     <TooltipProvider delayDuration={400}>
-      <div className="flex min-h-screen flex-col overflow-x-hidden">
+      <div className="flex min-h-screen flex-col overflow-x-clip">
         {/* Pull to refresh indicator */}
         <AnimatePresence>
           {(pullDistance > 0 || isRefreshing) && (
@@ -688,10 +690,16 @@ function PlacesExplorerInner() {
                     size="icon"
                     className="relative h-8 w-8"
                     onClick={toggleTheme}
-                    title={resolvedTheme === "dark" ? "Açık tema" : "Koyu tema"}
+                    title={
+                      mounted
+                        ? resolvedTheme === "dark"
+                          ? "Açık tema"
+                          : "Koyu tema"
+                        : "Tema değiştir"
+                    }
                   >
                     <AnimatePresence mode="wait" initial={false}>
-                      {resolvedTheme === "dark" ? (
+                      {mounted && resolvedTheme === "dark" ? (
                         <motion.span
                           key="moon"
                           initial={{ rotate: -90, scale: 0, opacity: 0 }}

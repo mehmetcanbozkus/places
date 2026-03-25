@@ -1,6 +1,7 @@
 "use client"
 
-import { useRef, useState, useMemo, useEffect } from "react"
+import { useRef, useState, useMemo } from "react"
+import Image from "next/image"
 import { motion, AnimatePresence } from "motion/react"
 import { toast } from "sonner"
 import {
@@ -96,14 +97,17 @@ function PhotoGallery({
         {photos.map((photo, i) => (
           <div
             key={photo.name}
-            className="aspect-[4/3] w-full flex-shrink-0 cursor-pointer snap-center overflow-hidden rounded-lg bg-muted"
+            className="relative aspect-[4/3] w-full flex-shrink-0 cursor-pointer snap-center overflow-hidden rounded-lg bg-muted"
             onClick={() => onPhotoClick(i)}
           >
-            <img
+            <Image
               src={getPhotoUrl(photo.name, 800)}
               alt={`Fotoğraf ${i + 1}`}
+              fill
+              sizes="(max-width: 640px) 100vw, 512px"
               loading={i === 0 ? "eager" : "lazy"}
-              className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
+              className="object-cover transition-transform duration-300 hover:scale-105"
+              unoptimized
             />
           </div>
         ))}
@@ -149,11 +153,14 @@ function ReviewCard({
     >
       <div className="flex items-start gap-3">
         {review.authorAttribution?.photoUri && (
-          <img
+          <Image
             src={review.authorAttribution.photoUri}
             alt={review.authorAttribution.displayName}
-            className="h-8 w-8 rounded-full object-cover"
+            width={32}
+            height={32}
+            className="rounded-full object-cover"
             referrerPolicy="no-referrer"
+            unoptimized
           />
         )}
         <div className="min-w-0 flex-1">
@@ -237,17 +244,20 @@ export function PlaceDetailSheet({
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const [reviewFilter, setReviewFilter] = useState<number | null>(null)
+  const [prevPlaceId, setPrevPlaceId] = useState(place?.id)
 
   // Reset review filter when place changes
-  useEffect(() => {
+  if (place?.id !== prevPlaceId) {
+    setPrevPlaceId(place?.id)
     setReviewFilter(null)
-  }, [place?.id])
+  }
 
+  const reviews = place?.reviews
   const filteredReviews = useMemo(() => {
-    if (!place?.reviews) return []
-    if (reviewFilter === null) return place.reviews
-    return place.reviews.filter((r) => r.rating === reviewFilter)
-  }, [place?.reviews, reviewFilter])
+    if (!reviews) return []
+    if (reviewFilter === null) return reviews
+    return reviews.filter((r) => r.rating === reviewFilter)
+  }, [reviews, reviewFilter])
 
   const openLightbox = (index: number) => {
     setLightboxIndex(index)
@@ -518,15 +528,6 @@ export function PlaceDetailSheet({
                             </a>
                           </Button>
                         )}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1"
-                          onClick={handleShare}
-                        >
-                          <Share2 className="mr-2 h-4 w-4" />
-                          Paylaş
-                        </Button>
                       </div>
                       {/* Secondary Google Maps links */}
                       {(place.googleMapsLinks?.writeAReviewUri ||

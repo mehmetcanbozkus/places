@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { motion } from "motion/react"
 import { toast } from "sonner"
 import {
@@ -91,13 +92,16 @@ export function PlaceListItem({
       }}
     >
       {/* Thumbnail */}
-      <div className="h-20 w-24 shrink-0 overflow-hidden rounded-lg bg-muted">
+      <div className="relative h-20 w-24 shrink-0 overflow-hidden rounded-lg bg-muted">
         {photoUrl ? (
-          <img
+          <Image
             src={photoUrl}
             alt={place.displayName.text}
+            fill
+            sizes="96px"
             loading="lazy"
-            className="h-full w-full object-cover"
+            className="object-cover"
+            unoptimized
           />
         ) : (
           <div className="flex h-full items-center justify-center">
