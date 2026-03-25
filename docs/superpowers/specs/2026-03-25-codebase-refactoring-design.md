@@ -72,6 +72,7 @@ Props for each: relevant callbacks (`setShowFavoritesOnly`, `setFilters`, `fetch
   - Derives `filters` from nuqs (this stays because it's tightly coupled to the URL params)
   - `filteredPlaces` useMemo (stays — it's the core data pipeline)
   - Renders: header, quick filters, sidebar, main grid/list, detail sheet, scroll-to-top
+  - `handlePlaceSelect` and `handleRecentSelect` stay here (they cross hook boundaries: location + recent searches + UI state)
   - ~300 lines
 
 ---
@@ -110,10 +111,13 @@ Used by `PlaceCard`, `PlaceListItem`, and (partially) `PlaceDetailSheet`.
 Shared Heart icon button with `motion.button`, `whileTap` animation, `aria-label`/`aria-pressed`, conditional pink styling. Props: `isFavorite`, `onToggle`, `size?: "sm" | "md"`, `className?`.
 
 **`src/components/share-button.tsx`**
-Shared share button that calls `sharePlace(place)` and shows toast. Props: `place`, `size?: "sm" | "md"`, `className?`. Handles `e.stopPropagation()` internally.
+Shared share button that calls `sharePlace(place)` and shows toast. Props: `place`, `size?: "sm" | "md"`, `className?`, `stopPropagation?: boolean` (default `true` for card/list usage, `false` for detail sheet).
 
 **`src/components/open-status-badge.tsx`**
-Shared Acik/Kapali badge with emerald/red styling. Props: `isOpen: boolean`, `variant?: "overlay" | "inline"`.
+Shared Acik/Kapali badge. Props: `isOpen: boolean`, `variant?: "overlay" | "inline" | "plain"`.
+- `overlay`: Used in PlaceCard — `bg-emerald-500/90`, Clock icon, neon glow shadow, backdrop-blur
+- `inline`: Used in PlaceListItem — `bg-emerald-500/15`, Clock icon, smaller text, no shadow
+- `plain`: Used in PlaceDetailSheet — `bg-emerald-500/90`, no Clock icon, no shadow
 
 **`src/components/place-detail-sheet/opening-hours.tsx`**
 Extracts the 75-line IIFE (lines 681-756 of `place-detail-sheet.tsx`) into a standalone component. Props: `descriptions: string[]`.
@@ -238,6 +242,14 @@ export const DETAIL_FIELD_MASK = [
 ]
 ```
 
+Note: The `nearby` route uses `places.`-prefixed field names (e.g., `places.id`) because the Nearby Search API returns a `{places: [...]}` wrapper. The `[id]` route uses unprefixed names. Store field names unprefixed in `_shared.ts` and have each route add the prefix as needed:
+
+```ts
+export const BASE_FIELDS = ["id", "displayName", "formattedAddress", ...]
+// nearby route: BASE_FIELDS.map(f => `places.${f}`).join(",")
+// [id] route: [...BASE_FIELDS, ...DETAIL_FIELDS].join(",")
+```
+
 Each route imports from `_shared.ts` instead of redeclaring. The underscore prefix signals this is a shared module, not a route.
 
 ---
@@ -272,5 +284,6 @@ Each route imports from `_shared.ts` instead of redeclaring. The underscore pref
 | Modify | `src/components/filters-panel.tsx` (update imports) |
 | Modify | `src/components/quick-filters.tsx` (update imports) |
 | Modify | `src/components/rating-breakdown.tsx` (update imports) |
+| Modify | `src/components/photo-lightbox.tsx` (update imports: `getPhotoUrl` → `place-utils`) |
 | Modify | `src/components/scroll-to-top.tsx` (no change needed) |
 | Modify | All 5 API routes (use _shared.ts) |
