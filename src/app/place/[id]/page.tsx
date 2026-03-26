@@ -19,7 +19,11 @@ import { Separator } from "@/components/ui/separator"
 import { OpenStatusBadge } from "@/components/open-status-badge"
 import type { Place, PriceLevel, Review } from "@/lib/types"
 import { PRICE_LEVEL_MAP } from "@/lib/constants"
-import { getPhotoUrl, getRatingColor, formatReviewCount } from "@/lib/place-utils"
+import {
+  getPhotoUrl,
+  getRatingColor,
+  formatReviewCount,
+} from "@/lib/place-utils"
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000"
 
@@ -83,13 +87,7 @@ function RatingStars({ rating }: { rating: number }) {
   )
 }
 
-function FeatureBadge({
-  label,
-  active,
-}: {
-  label: string
-  active?: boolean
-}) {
+function FeatureBadge({ label, active }: { label: string; active?: boolean }) {
   if (!active) return null
   return <Badge variant="secondary">{label}</Badge>
 }
@@ -295,7 +293,10 @@ export default async function PlacePage({
                 <FeatureBadge label="Gruplar" active={place.goodForGroups} />
                 <FeatureBadge label="Çocuklar" active={place.goodForChildren} />
                 <FeatureBadge label="Canlı Müzik" active={place.liveMusic} />
-                <FeatureBadge label="Kokteyller" active={place.servesCocktails} />
+                <FeatureBadge
+                  label="Kokteyller"
+                  active={place.servesCocktails}
+                />
                 <FeatureBadge label="Kahve" active={place.servesCoffee} />
                 <FeatureBadge label="Evcil Hayvan" active={place.allowsDogs} />
               </div>
@@ -313,11 +314,9 @@ export default async function PlacePage({
                 Çalışma Saatleri
               </h2>
               <ul className="space-y-1 text-sm text-muted-foreground">
-                {place.regularOpeningHours.weekdayDescriptions.map(
-                  (day, i) => (
-                    <li key={i}>{day}</li>
-                  )
-                )}
+                {place.regularOpeningHours.weekdayDescriptions.map((day, i) => (
+                  <li key={i}>{day}</li>
+                ))}
               </ul>
             </div>
           </>
@@ -330,7 +329,7 @@ export default async function PlacePage({
             <div className="space-y-3">
               <h2 className="text-sm font-semibold">Yorumlar</h2>
               {place.reviewSummary?.text?.text && (
-                <p className="text-sm italic text-muted-foreground">
+                <p className="text-sm text-muted-foreground italic">
                   {place.reviewSummary.text.text}
                 </p>
               )}

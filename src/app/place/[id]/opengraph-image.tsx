@@ -1,8 +1,4 @@
-import {
-  ogSize,
-  ogContentType,
-  renderPlaceOGImage,
-} from "./og-shared"
+import { ogSize, ogContentType, renderPlaceOGImage } from "./og-shared"
 
 export const size = ogSize
 export const contentType = ogContentType
