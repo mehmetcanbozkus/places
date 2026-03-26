@@ -18,7 +18,7 @@ Add OpenGraph and Twitter Card metadata so the app produces rich social previews
 
 ## 1. Root Layout Metadata
 
-Update `src/app/layout.tsx` to complete the existing metadata export:
+Update `src/app/layout.tsx` to complete the existing metadata export. Note: preserve the existing Turkish Unicode characters (e.g. "Yakınımdaki" not "Yakinimdaki") — the ASCII below is a rendering artifact:
 
 ```ts
 export const metadata: Metadata = {
@@ -95,7 +95,7 @@ export default async function OGImage({
   const photoName = place.photos?.[0]?.name
   const photoSrc = photoName
     ? await fetch(
-        `${baseUrl}/api/places/photo?name=${photoName}&maxWidth=1200`
+        `${baseUrl}/api/places/photo?name=${photoName}&maxWidthPx=1200`
       )
         .then((r) => r.arrayBuffer())
         .then((buf) => {
@@ -130,7 +130,7 @@ Key details:
 - Font: Noto Sans Bold `.ttf` stored in `assets/fonts/`
 - Flexbox only (ImageResponse/Satori limitation)
 
-`twitter-image.tsx` is a separate file with the same logic. It cannot be a re-export since that pattern is undocumented.
+`twitter-image.tsx` is a separate file. Extract the shared rendering logic into a helper function (e.g. `og-shared.tsx`) that both `opengraph-image.tsx` and `twitter-image.tsx` import, rather than duplicating the full implementation. The re-export pattern is undocumented so a shared helper is the safer approach.
 
 ## 5. Place Detail Page
 
