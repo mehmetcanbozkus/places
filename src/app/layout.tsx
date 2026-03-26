@@ -8,6 +8,9 @@ import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000"
+  ),
   title: {
     default: "Nerede Yesem? - Yakınımdaki En İyi Mekanlar",
     template: "%s | Nerede Yesem?",
@@ -19,6 +22,12 @@ export const metadata: Metadata = {
     description: "Yakınızdaki en iyi mekanları keşfedin",
     type: "website",
     locale: "tr_TR",
+    siteName: "Nerede Yesem?",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Nerede Yesem?",
+    description: "Yakınızdaki en iyi mekanları keşfedin",
   },
 }
 
