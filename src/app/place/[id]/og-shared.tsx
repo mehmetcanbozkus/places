@@ -9,12 +9,7 @@ export const ogSize = { width: 1200, height: 630 }
 export const ogContentType = "image/png"
 
 function getBaseUrl() {
-  return (
-    process.env.NEXT_PUBLIC_BASE_URL ??
-    (process.env.VERCEL_PROJECT_PRODUCTION_URL
-      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-      : "http://localhost:3000")
-  )
+  return process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000"
 }
 
 async function fetchPlaceData(id: string) {

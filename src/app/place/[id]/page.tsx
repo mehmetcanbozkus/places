@@ -25,11 +25,7 @@ import {
   formatReviewCount,
 } from "@/lib/place-utils"
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_BASE_URL ??
-  (process.env.VERCEL_PROJECT_PRODUCTION_URL
-    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : "http://localhost:3000")
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000"
 
 async function fetchPlace(id: string): Promise<Place | null> {
   const res = await fetch(`${BASE_URL}/api/places/${id}`)
