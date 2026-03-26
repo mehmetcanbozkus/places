@@ -304,9 +304,16 @@ export function PlaceDetailSheet({
                     <div>
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
-                          <h2 className="text-xl font-bold">
-                            {place.displayName.text}
-                          </h2>
+                          <a
+                            href={`/place/${place.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group"
+                          >
+                            <h2 className="text-xl font-bold underline-offset-4 group-hover:underline">
+                              {place.displayName.text}
+                            </h2>
+                          </a>
                           {place.primaryTypeDisplayName && (
                             <p className="mt-0.5 text-sm text-muted-foreground">
                               {place.primaryTypeDisplayName.text}

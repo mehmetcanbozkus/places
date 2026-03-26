@@ -11,6 +11,8 @@ import {
   Star,
   Clock,
   ChevronRight,
+  ArrowLeft,
+  MessageSquare,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -94,14 +96,14 @@ function FeatureBadge({ label, active }: { label: string; active?: boolean }) {
 
 function ReviewCard({ review }: { review: Review }) {
   return (
-    <div className="rounded-lg border bg-card p-4">
-      <div className="mb-2 flex items-center gap-2">
+    <div className="rounded-xl border bg-card/50 p-4">
+      <div className="mb-2.5 flex items-center gap-2.5">
         {review.authorAttribution?.photoUri && (
           <Image
             src={review.authorAttribution.photoUri}
             alt={review.authorAttribution.displayName}
-            width={32}
-            height={32}
+            width={36}
+            height={36}
             className="rounded-full"
             unoptimized
           />
@@ -114,13 +116,17 @@ function ReviewCard({ review }: { review: Review }) {
             {review.relativePublishTimeDescription}
           </p>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 rounded-md bg-amber-500/10 px-2 py-0.5">
           <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-          <span className="text-sm font-medium">{review.rating}</span>
+          <span className="text-sm font-semibold text-amber-500">
+            {review.rating}
+          </span>
         </div>
       </div>
       {review.text?.text && (
-        <p className="text-sm text-muted-foreground">{review.text.text}</p>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          {review.text.text}
+        </p>
       )}
     </div>
   )
@@ -144,23 +150,33 @@ export default async function PlacePage({
 
   return (
     <main className="mx-auto min-h-screen max-w-2xl bg-background">
-      {/* Hero Photo */}
+      {/* Hero Photo with overlay */}
       <div className="relative aspect-[16/9] w-full bg-muted">
         {firstPhoto ? (
-          <Image
-            src={getPhotoUrl(firstPhoto.name, 1200)}
-            alt={place.displayName?.text ?? "Mekan fotoğrafı"}
-            fill
-            className="object-cover"
-            sizes="(max-width: 672px) 100vw, 672px"
-            priority
-            unoptimized
-          />
+          <>
+            <Image
+              src={getPhotoUrl(firstPhoto.name, 1200)}
+              alt={place.displayName?.text ?? "Mekan fotoğrafı"}
+              fill
+              className="object-cover"
+              sizes="(max-width: 672px) 100vw, 672px"
+              priority
+              unoptimized
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-background/30" />
+          </>
         ) : (
           <div className="flex h-full items-center justify-center">
             <MapPin className="h-12 w-12 text-muted-foreground" />
           </div>
         )}
+        {/* Back button */}
+        <Link
+          href="/"
+          className="absolute top-4 left-4 flex h-9 w-9 items-center justify-center rounded-full bg-background/60 backdrop-blur-sm transition-colors hover:bg-background/80"
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Link>
       </div>
 
       <div className="space-y-6 p-6">
@@ -170,25 +186,28 @@ export default async function PlacePage({
             {place.displayName?.text}
           </h1>
 
-          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-2.5 text-sm">
             {place.primaryTypeDisplayName?.text && (
-              <span>{place.primaryTypeDisplayName.text}</span>
+              <span className="text-muted-foreground">
+                {place.primaryTypeDisplayName.text}
+              </span>
             )}
             {place.rating && (
               <>
-                <span>·</span>
+                <span className="text-muted-foreground/40">·</span>
                 <RatingStars rating={place.rating} />
-                {place.userRatingCount && (
-                  <span className="text-muted-foreground">
-                    ({formatReviewCount(place.userRatingCount)})
-                  </span>
-                )}
               </>
+            )}
+            {place.userRatingCount && (
+              <div className="flex items-center gap-1 text-muted-foreground">
+                <MessageSquare className="h-3.5 w-3.5" />
+                <span>{formatReviewCount(place.userRatingCount)} yorum</span>
+              </div>
             )}
             {priceLabel && (
               <>
-                <span>·</span>
-                <span>{priceLabel}</span>
+                <span className="text-muted-foreground/40">·</span>
+                <Badge variant="outline">{priceLabel}</Badge>
               </>
             )}
           </div>
@@ -200,7 +219,7 @@ export default async function PlacePage({
 
         {/* Editorial Summary */}
         {place.editorialSummary?.text && (
-          <p className="text-sm leading-relaxed text-muted-foreground">
+          <p className="text-sm leading-relaxed text-muted-foreground italic">
             {place.editorialSummary.text}
           </p>
         )}
