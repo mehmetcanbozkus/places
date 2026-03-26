@@ -4,38 +4,22 @@ import { join } from "node:path"
 
 import { PRICE_LEVEL_SYMBOL } from "@/lib/constants"
 import type { PriceLevel } from "@/lib/types"
+import { fetchPlaceDetail, fetchPlacePhotoBuffer } from "@/lib/google-places"
 
 export const ogSize = { width: 1200, height: 630 }
 export const ogContentType = "image/png"
 
-function getBaseUrl() {
-  return process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000"
-}
-
-async function fetchPlaceData(id: string) {
-  const res = await fetch(`${getBaseUrl()}/api/places/${id}`)
-  if (!res.ok) return null
-  return res.json()
-}
-
-async function fetchPhotoBase64(photoName: string): Promise<string | null> {
-  try {
-    const res = await fetch(
-      `${getBaseUrl()}/api/places/photo?name=${encodeURIComponent(photoName)}&maxWidthPx=1200`
-    )
-    if (!res.ok) return null
-    const buf = await res.arrayBuffer()
-    return `data:image/jpeg;base64,${Buffer.from(buf).toString("base64")}`
-  } catch {
-    return null
-  }
-}
-
 export async function renderPlaceOGImage(id: string) {
-  const place = await fetchPlaceData(id)
+  const place = await fetchPlaceDetail(id)
 
   const photoName = place?.photos?.[0]?.name
-  const photoSrc = photoName ? await fetchPhotoBase64(photoName) : null
+  const photoSrc = photoName
+    ? await fetchPlacePhotoBuffer(photoName).then((buf) =>
+        buf
+          ? `data:image/jpeg;base64,${Buffer.from(buf).toString("base64")}`
+          : null
+      )
+    : null
 
   const fontBold = await readFile(
     join(process.cwd(), "assets/fonts/NotoSans-Bold.ttf")

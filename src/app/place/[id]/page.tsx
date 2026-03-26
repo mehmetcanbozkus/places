@@ -26,14 +26,7 @@ import {
   getRatingColor,
   formatReviewCount,
 } from "@/lib/place-utils"
-
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000"
-
-async function fetchPlace(id: string): Promise<Place | null> {
-  const res = await fetch(`${BASE_URL}/api/places/${id}`)
-  if (!res.ok) return null
-  return res.json()
-}
+import { fetchPlaceDetail } from "@/lib/google-places"
 
 export async function generateMetadata({
   params,
@@ -41,7 +34,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>
 }): Promise<Metadata> {
   const { id } = await params
-  const place = await fetchPlace(id)
+  const place = await fetchPlaceDetail(id)
 
   if (!place) {
     return { title: "Mekan Bulunamadı" }
@@ -138,7 +131,7 @@ export default async function PlacePage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const place = await fetchPlace(id)
+  const place = await fetchPlaceDetail(id)
 
   if (!place) notFound()
 
